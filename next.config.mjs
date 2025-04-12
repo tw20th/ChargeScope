@@ -1,4 +1,8 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  images: {
+    domains: ['your-image-url.com', 'source.unsplash.com'], // ← 使いたいドメインを追加
+  },
+}
 
-export default nextConfig;
+export default nextConfig
