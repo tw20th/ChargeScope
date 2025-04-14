@@ -10,6 +10,29 @@ type Props = {
   }
 }
 
+// ✅ 投稿ごとの <meta> タグを生成
+export async function generateMetadata({ params }: Props) {
+  const post = await getPostBySlug(params.slug)
+
+  if (!post) return {}
+
+  return {
+    title: post.title,
+    description: post.description || 'はちゅナビの爬虫類ブログです。',
+    openGraph: {
+      title: post.title,
+      description: post.description || 'はちゅナビの爬虫類ブログです。',
+      images: [post.image || 'https://hatyu-navi.vercel.app/ogp.png'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.description || 'はちゅナビの爬虫類ブログです。',
+      images: [post.image || 'https://hatyu-navi.vercel.app/ogp.png'],
+    },
+  }
+}
+
 export async function generateStaticParams() {
   const posts = await getAllPosts()
   return posts.map((post) => ({ slug: post.slug }))
@@ -22,7 +45,7 @@ export default async function BlogDetailPage({ params }: Props) {
   return (
     <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
       {post.image && (
-        <div className="aspect-video relative rounded-xl overflow-hidden">
+        <figure className="aspect-video relative rounded-xl overflow-hidden">
           <Image
             src={post.image}
             alt={post.title}
@@ -30,7 +53,10 @@ export default async function BlogDetailPage({ params }: Props) {
             className="object-cover"
             priority
           />
-        </div>
+          <figcaption className="text-sm text-center text-gray-500 mt-2">
+            {post.imageComment}
+          </figcaption>
+        </figure>
       )}
 
       <h1 className="text-3xl font-bold">{post.title}</h1>

@@ -2,13 +2,36 @@ import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 import {v4 as uuid} from "uuid";
 import {generatePromptByWeekday} from "../utils/generatePromptByWeekday";
+import {autoLinkCategories} from "../utils/autoLinkCategories";
 
 admin.initializeApp();
 const db = admin.firestore();
 
+// ✅ 未使用の画像を1枚ランダム取得する関数
+const getUnusedImageAsset = async () => {
+  const snapshot = await db
+    .collection("imageAssets")
+    .where("used", "==", false)
+    .get();
+
+  const docs = snapshot.docs;
+  if (docs.length === 0) return null;
+
+  const randomDoc = docs[Math.floor(Math.random() * docs.length)];
+  const data = randomDoc.data();
+
+  // 使用済みに更新
+  await randomDoc.ref.update({used: true});
+
+  return {
+    url: data.url,
+    comment: data.comment,
+  };
+};
+
 const generatePost = async (apiKey: string) => {
   const today = new Date();
-  const weekday = today.getDay(); // ← ✅ 曜日（0〜6）を取得
+  const weekday = today.getDay();
 
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -35,7 +58,7 @@ const generatePost = async (apiKey: string) => {
         },
         {
           role: "user",
-          content: generatePromptByWeekday(weekday), // ← ✅ 曜日を渡す
+          content: generatePromptByWeekday(weekday),
         },
       ],
     }),
@@ -45,16 +68,24 @@ const generatePost = async (apiKey: string) => {
     choices: { message: { content: string } }[]
   };
 
+  const content = json.choices[0].message.content;
+
+  // ✅ Markdownのタイトル（"# タイトル"）を抽出
+  const titleMatch = content.match(/^#\s+(.*)$/m);
+  const title = titleMatch ? titleMatch[1] : "はちゅブログ記事";
+
+  const imageAsset = await getUnusedImageAsset();
+
   return {
-    title: "レオパの保温管理：初心者向けガイド", // ← 必要なら動的に
+    title,
     slug: `auto-${uuid().slice(0, 8)}`,
     description: "初心者向けにレオパの温度管理ポイントを紹介します。",
-    image: "https://source.unsplash.com/800x400/?leopard-gecko",
-    content: json.choices[0].message.content,
+    content: autoLinkCategories(content),
+    image: imageAsset?.url || null,
+    imageComment: imageAsset?.comment || null,
     date: new Date().toISOString().split("T")[0],
   };
 };
-
 export const dailyPost = functions
   .runWith({secrets: ["OPENAI_API_KEY"]})
   .pubsub.schedule("0 22 * * *")

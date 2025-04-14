@@ -10,12 +10,13 @@ import {
 } from 'firebase/firestore'
 
 export type Post = {
-  slug: string
   title: string
-  description: string
+  slug: string
+  description?: string
   date: string
-  content?: string
+  content: string
   image?: string
+  imageComment?: string // ← ✅ これを追加
 }
 
 export const getAllPosts = async (): Promise<Post[]> => {
