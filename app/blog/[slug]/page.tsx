@@ -1,8 +1,8 @@
-// app/blog/[slug]/page.tsx
-import { getAllPosts, getPostBySlug } from '@/lib/posts'
+import { getAllPosts, getPostBySlug, getRelatedPosts } from '@/lib/posts'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import ReactMarkdown from 'react-markdown'
+import { RelatedPosts } from '@/components/blog/RelatedPosts' // ← 追加！
 
 type Props = {
   params: {
@@ -10,10 +10,8 @@ type Props = {
   }
 }
 
-// ✅ 投稿ごとの <meta> タグを生成
 export async function generateMetadata({ params }: Props) {
   const post = await getPostBySlug(params.slug)
-
   if (!post) return {}
 
   return {
@@ -42,6 +40,12 @@ export default async function BlogDetailPage({ params }: Props) {
   const post = await getPostBySlug(params.slug)
   if (!post) return notFound()
 
+  const relatedPosts = await getRelatedPosts(
+    post.category || '',
+    post.tags || [],
+    post.slug
+  )
+
   return (
     <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
       {post.image && (
@@ -65,6 +69,9 @@ export default async function BlogDetailPage({ params }: Props) {
       <div className="prose prose-lg max-w-none">
         <ReactMarkdown>{post.content || ''}</ReactMarkdown>
       </div>
+
+      {/* ✅ ここに関連記事セクションを追加！ */}
+      <RelatedPosts posts={relatedPosts} />
     </main>
   )
 }

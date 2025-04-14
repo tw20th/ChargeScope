@@ -1,13 +1,15 @@
 // app/page.tsx
-import { Seo } from '@/components/Seo'
 
-export default function Home() {
+export const dynamic = 'force-dynamic'
+console.log('🧪 TopPage レンダリングされてるよ！')
+
+export default function HomePage() {
+  console.log('📦 HomePage 関数コンポーネント実行！')
+
   return (
-    <>
-      <Seo title="はちゅナビ - 爬虫類情報ブログ" />
-      <main className="flex min-h-screen items-center justify-center bg-green-100 text-2xl font-bold">
-        <p>Tailwind OK！</p>
-      </main>
-    </>
+    <main className="max-w-3xl mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold">🐸 はちゅナビへようこそ！</h1>
+      <p className="mt-4">このページが表示されれば、ルーティングもOK！</p>
+    </main>
   )
 }
