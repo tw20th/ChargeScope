@@ -1,15 +1,15 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { getPaginatedProducts } from '@/lib/products'
+import { useEffect, useMemo, useState } from 'react'
+import { getPaginatedProducts } from '@/lib/firebase/products'
 import type { Product } from '@/lib/products'
 import { ProductCard } from '@/components/product/ProductCard'
 import { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore'
-import { Button } from '@/components/ui/button'
 import { ProductFilter } from '@/components/product/ProductFilter'
 import { Input } from '@/components/ui/input'
+import { ScrollObserver } from '@/components/common/ScrollObserver'
 
-type SortKey = 'new' | 'priceAsc' | 'priceDesc' // ✅ 型を明示
+type SortKey = 'new' | 'priceAsc' | 'priceDesc'
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
@@ -21,10 +21,29 @@ export default function ProductsPage() {
   const [searchKeyword, setSearchKeyword] = useState('')
   const [minPrice, setMinPrice] = useState(0)
   const [maxPrice, setMaxPrice] = useState(Infinity)
-  const [sortKey, setSortKey] = useState<SortKey>('new') // ✅ ← 重複を解消
+  const [sortKey, setSortKey] = useState<SortKey>('new')
 
-  // Firestoreから商品を取得
-  const fetchProducts = useCallback(async () => {
+  // ✅ 初回読み込み（カテゴリ・タグ変更時）
+  useEffect(() => {
+    const fetchInitialProducts = async () => {
+      setLoading(true)
+      const res = await getPaginatedProducts(
+        20,
+        null,
+        selectedCategory,
+        selectedTag
+      )
+      setProducts(res.products)
+      setCursor(res.lastVisible)
+      setLoading(false)
+    }
+
+    fetchInitialProducts()
+  }, [selectedCategory, selectedTag])
+
+  // ✅ 「もっと見る」読み込み
+  const handleLoadMore = async () => {
+    if (loading || !cursor) return
     setLoading(true)
     const res = await getPaginatedProducts(
       20,
@@ -35,18 +54,9 @@ export default function ProductsPage() {
     setProducts((prev) => [...prev, ...res.products])
     setCursor(res.lastVisible)
     setLoading(false)
-  }, [cursor, selectedCategory, selectedTag])
+  }
 
-  useEffect(() => {
-    setProducts([])
-    setCursor(null)
-  }, [selectedCategory, selectedTag])
-
-  useEffect(() => {
-    fetchProducts()
-  }, [fetchProducts])
-
-  // ✅ 検索・価格フィルター・ソート
+  // ✅ 検索・価格フィルター・並び替え
   const filteredProducts = useMemo(() => {
     let result = products
       .filter((p) =>
@@ -62,7 +72,7 @@ export default function ProductsPage() {
     } else if (sortKey === 'priceDesc') {
       result = result.sort((a, b) => b.price - a.price)
     } else {
-      result = result.sort((a, b) => b.date.localeCompare(a.date)) // 'new'
+      result = result.sort((a, b) => b.date.localeCompare(a.date))
     }
 
     return result
@@ -72,7 +82,6 @@ export default function ProductsPage() {
     <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
       <h1 className="text-3xl font-bold">商品一覧</h1>
 
-      {/* 🔍 検索バー */}
       <Input
         type="text"
         placeholder="商品名・説明・タグで検索..."
@@ -81,7 +90,6 @@ export default function ProductsPage() {
         className="w-full max-w-md"
       />
 
-      {/* ✅ 並び替えセレクト */}
       <div className="mt-2">
         <label className="text-sm mr-2 font-medium">並び順:</label>
         <select
@@ -95,7 +103,6 @@ export default function ProductsPage() {
         </select>
       </div>
 
-      {/* ✅ フィルター */}
       <ProductFilter
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
@@ -107,18 +114,19 @@ export default function ProductsPage() {
         setMaxPrice={setMaxPrice}
       />
 
-      {/* ✅ 商品一覧 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredProducts.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>
 
+      {/* 自動スクロール読み込み */}
       {cursor && (
         <div className="text-center mt-8">
-          <Button onClick={fetchProducts} disabled={loading}>
-            {loading ? '読み込み中...' : 'もっと見る'}
-          </Button>
+          <ScrollObserver onIntersect={handleLoadMore} disabled={loading} />
+          {loading && (
+            <p className="text-sm text-gray-500 mt-2">読み込み中...</p>
+          )}
         </div>
       )}
     </main>

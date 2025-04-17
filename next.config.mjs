@@ -14,7 +14,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'images.rakuten.co.jp',
+        hostname: 'thumbnail.image.rakuten.co.jp', // ✅ ← 修正済み！
         pathname: '/**',
       },
     ],
