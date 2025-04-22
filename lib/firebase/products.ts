@@ -1,58 +1,52 @@
-import { db } from '../firebase'
+// lib/firebase/products.ts
+
 import {
   collection,
-  query,
+  getDocs,
+  limit,
   orderBy,
+  query,
   startAfter,
   where,
-  limit,
-  getDocs,
-  QueryDocumentSnapshot,
+  Query,
   DocumentData,
+  QueryDocumentSnapshot,
 } from 'firebase/firestore'
-import type { Product } from '../products' // ✅ Product 型をインポート
+import { db } from '../firebase'
+import { Product } from '../products'
 
-export async function getPaginatedProducts(
+export const getPaginatedProducts = async (
   limitCount: number,
   cursor: QueryDocumentSnapshot<DocumentData> | null,
-  displayCategory: string,
-  tag?: string
-): Promise<{
-  products: Product[]
-  lastVisible: QueryDocumentSnapshot<DocumentData> | null
-}> {
-  const constraints = [
-    orderBy('date', 'desc'),
-    ...(displayCategory !== 'all'
-      ? [where('displayCategory', '==', displayCategory)]
-      : []),
-    ...(tag ? [where('tags', 'array-contains', tag)] : []),
-    ...(cursor ? [startAfter(cursor)] : []),
-    limit(limitCount),
-  ]
+  selectedCategory: string,
+  selectedTag?: string
+) => {
+  // ✅ クエリ条件をまとめて配列に追加
+  const conditions = []
 
-  const baseQuery = query(collection(db, 'products'), ...constraints)
+  if (selectedCategory !== 'all') {
+    conditions.push(where('displayCategory', '==', selectedCategory))
+  }
 
-  const snapshot = await getDocs(baseQuery)
-  const products = snapshot.docs.map((doc) => {
-    const data = doc.data()
-    return {
-      id: doc.id,
-      slug: data.slug,
-      title: data.title,
-      description: data.description,
-      price: data.price,
-      image: data.image,
-      link: data.link,
-      category: data.category,
-      displayCategory: data.displayCategory ?? null,
-      tags: data.tags ?? [],
-      date: data.date,
-    } as Product
-  })
+  if (selectedTag) {
+    conditions.push(where('tags', 'array-contains', selectedTag))
+  }
+
+  // ✅ 並び順と取得件数
+  conditions.push(orderBy('date', 'desc'))
+  conditions.push(limit(limitCount))
+
+  if (cursor) {
+    conditions.push(startAfter(cursor))
+  }
+
+  // ✅ query関数に条件をまとめて渡す
+  const q = query(collection(db, 'products'), ...conditions)
+
+  const snapshot = await getDocs(q)
 
   return {
-    products,
+    products: snapshot.docs.map((doc) => doc.data() as Product),
     lastVisible: snapshot.docs[snapshot.docs.length - 1] ?? null,
   }
 }

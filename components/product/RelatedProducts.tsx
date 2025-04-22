@@ -1,28 +1,37 @@
-'use client'
-
-import { ProductCard } from './ProductCard'
-import type { Product } from '@/lib/products'
+// components/product/RelatedProducts.tsx
+import Link from 'next/link'
+import Image from 'next/image'
+import { Product } from '@/lib/products'
 
 type Props = {
   products: Product[]
 }
 
 export const RelatedProducts = ({ products }: Props) => {
-  if (products.length === 0) {
-    return (
-      <section className="mt-12">
-        <h2 className="text-2xl font-bold mb-4">関連商品</h2>
-        <p className="text-gray-500">関連する商品は見つかりませんでした。</p>
-      </section>
-    )
-  }
+  if (!products.length) return null
 
   return (
-    <section className="mt-12">
-      <h2 className="text-2xl font-bold mb-4">関連商品</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <section className="mt-10">
+      <h2 className="text-xl font-semibold mb-4">関連商品</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
+          <Link
+            key={product.slug}
+            href={`/products/${product.slug}`}
+            className="block border p-2 rounded hover:shadow-sm"
+          >
+            <Image
+              src={product.image}
+              alt={product.title}
+              width={300}
+              height={200}
+              className="object-contain w-full h-auto rounded mb-2"
+            />
+            <p className="text-sm">{product.title}</p>
+            <p className="text-blue-600 font-semibold text-sm">
+              ¥{product.price.toLocaleString()}
+            </p>
+          </Link>
         ))}
       </div>
     </section>

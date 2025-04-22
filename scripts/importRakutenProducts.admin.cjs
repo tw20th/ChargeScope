@@ -33,16 +33,20 @@ const run = async () => {
 
   const items = await rakuten.fetchRakutenItems(keyword)
 
-  const products = items.map((item) => {
-    const product = rakuten.mapRakutenItemToProduct(item)
-    const { category, tags } = classifyProduct(item)
-    return {
-      ...product,
-      category,
-      tags,
-    }
-  })
+  // ✅ 商品分類 & 除外処理（null の除外も含む）
+  const products = items
+    .map((item) => {
+      const product = rakuten.mapRakutenItemToProduct(item)
+      const result = classifyProduct(item)
+      if (!result) return null // ❌ 除外対象はスキップ
+      return {
+        ...product,
+        ...result,
+      }
+    })
+    .filter(Boolean) // null 除外
 
+  // ✅ Firestore に登録
   for (const product of products) {
     const ref = db.collection('products').doc(product.id)
     const snapshot = await ref.get()

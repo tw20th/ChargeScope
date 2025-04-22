@@ -13,14 +13,14 @@ import {
 
 export type Product = {
   id: string
-  slug: string // ← 🔥 これを追加！
-
+  slug: string
   title: string
   description: string
   price: number
   image: string
   link: string
   category: string
+  displayCategory: string // ✅ ← これを追加！
   tags?: string[]
   date: string
 }

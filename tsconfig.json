@@ -6,22 +6,30 @@
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
+    "module": "ESNext", // ← ✅ ESM対応
+    "moduleResolution": "node", // ← ✅ Node.jsモジュール解決に変更
+    "resolveJsonModule": true, // ← ✅ JSON読み込み有効化
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    },
     "plugins": [
       {
         "name": "next"
       }
-    ],
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./*"]
-    }
+    ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "lib/classifier/tagRules.js",
+    "lib/classifier/genreMap.js",
+    "lib/classifier/classifyProduct.js"
+  ],
   "exclude": ["node_modules"]
 }

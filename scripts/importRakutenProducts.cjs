@@ -1,24 +1,19 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 require('dotenv').config()
 
-const { initializeApp } = require('firebase/app')
-const {
-  getFirestore,
-  collection,
-  doc,
-  setDoc,
-  getDoc,
-} = require('firebase/firestore')
-
-const { firebaseConfig } = require('../dist-cli/lib/firebase.js') // ← ここ！
+const admin = require('firebase-admin')
 const {
   fetchRakutenItems,
   mapRakutenItemToProduct,
-} = require('../dist-cli/lib/rakuten.js') // ← ここ！
+} = require('../dist-cli/lib/rakuten.cjs')
+const serviceAccount = require('../serviceAccountKey.json')
 
-// Firebase 初期化
-const app = initializeApp(firebaseConfig)
-const db = getFirestore(app)
+// Firebase Admin 初期化
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+})
+
+const db = admin.firestore()
 
 const importRakutenProducts = async (keyword) => {
   console.log(`🔍 楽天APIで「${keyword}」を検索中...`)
@@ -27,24 +22,33 @@ const importRakutenProducts = async (keyword) => {
   const products = items.map(mapRakutenItemToProduct)
 
   for (const product of products) {
-    const ref = doc(collection(db, 'products'), product.id)
-    const snapshot = await getDoc(ref)
-    if (snapshot.exists()) {
+    const ref = db.collection('products').doc(product.id)
+    const snapshot = await ref.get()
+
+    if (snapshot.exists) {
       console.log(`⚠️ 既に登録済み: ${product.title}`)
       continue
     }
 
-    await setDoc(ref, product)
+    await ref.set({
+      ...product,
+      viewCount: 0,
+      clickCount: 0,
+      createdAt: admin.firestore.Timestamp.now(),
+      updatedAt: admin.firestore.Timestamp.now(),
+    })
+
     console.log(`✅ 登録完了: ${product.title}`)
   }
 
   console.log('🎉 登録処理が完了しました。')
 }
 
+// CLI引数からキーワード取得
 const keyword = process.argv[2]
 if (!keyword) {
   console.error(
-    '❌ キーワードを指定してください。例: node scripts/importRakutenProducts.cjs "レオパ"'
+    '❌ キーワードを指定してください。例: node importRakutenProductsAdmin.cjs "レオパ"'
   )
   process.exit(1)
 }

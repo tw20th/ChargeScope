@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { Input } from '@/components/ui/input'
-import { getCategories, Category } from '@/lib/categories'
-import { getTags, Tag } from '@/lib/tags'
+import { getHybridPopularTags } from '@/lib/getHybridPopularTags'
+import type { Tag } from '@/lib/tags'
+import { displayCategoryLabels } from '@/lib/displayCategoryLabels'
 
 type Props = {
   selectedCategory: string
@@ -26,59 +27,38 @@ export const ProductFilter = ({
   setMinPrice,
   setMaxPrice,
 }: Props) => {
-  const [categories, setCategories] = useState<Category[]>([])
   const [tags, setTags] = useState<Tag[]>([])
+  const displayCategories = Object.entries(displayCategoryLabels)
 
-  // ✅ カテゴリ取得
+  // ✅ タグを Firestore から取得
   useEffect(() => {
-    const fetch = async () => {
-      const cats = await getCategories()
-      setCategories(
-        cats.filter((c) => c.type === 'product' || c.type === 'both')
-      )
+    const fetchTags = async () => {
+      const topTags = await getHybridPopularTags(8) // ← 件数はお好みで
+      setTags(topTags)
     }
-    fetch()
-  }, [])
-
-  // ✅ タグ取得
-  useEffect(() => {
-    const fetch = async () => {
-      const t = await getTags()
-      setTags(t.filter((tag) => tag.type === 'product' || tag.type === 'both'))
-    }
-    fetch()
+    fetchTags()
   }, [])
 
   return (
     <div className="space-y-4">
-      {/* ✅ カテゴリ */}
+      {/* ✅ 表示カテゴリフィルター */}
       <div className="flex gap-2 flex-wrap">
-        <button
-          onClick={() => setSelectedCategory('all')}
-          className={`px-3 py-1 rounded-full border ${
-            selectedCategory === 'all'
-              ? 'bg-blue-600 text-white'
-              : 'text-blue-600 hover:bg-blue-100'
-          }`}
-        >
-          すべて
-        </button>
-        {categories.map((cat) => (
+        {displayCategories.map(([key, label]) => (
           <button
-            key={cat.id}
-            onClick={() => setSelectedCategory(cat.id)}
+            key={key}
+            onClick={() => setSelectedCategory(key)}
             className={`px-3 py-1 rounded-full border ${
-              selectedCategory === cat.id
+              selectedCategory === key
                 ? 'bg-blue-600 text-white'
                 : 'text-blue-600 hover:bg-blue-100'
             }`}
           >
-            {cat.name}
+            {label}
           </button>
         ))}
       </div>
 
-      {/* ✅ タグ */}
+      {/* ✅ タグフィルター */}
       <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => setSelectedTag(undefined)}
@@ -105,7 +85,7 @@ export const ProductFilter = ({
         ))}
       </div>
 
-      {/* ✅ 価格帯 */}
+      {/* ✅ 価格フィルター */}
       <div className="flex items-center gap-2">
         <label className="text-sm text-gray-700">価格帯:</label>
         <Input

@@ -67,6 +67,17 @@ export default function ProductsPage() {
       )
       .filter((p) => p.price >= minPrice && p.price <= maxPrice)
 
+    // ✅ displayCategory の再確認（念のため）
+    if (selectedCategory !== 'all') {
+      result = result.filter((p) => p.displayCategory === selectedCategory)
+    }
+
+    // ✅ タグも再確認（optional）
+    if (selectedTag) {
+      result = result.filter((p) => p.tags?.includes(selectedTag))
+    }
+
+    // 並び順
     if (sortKey === 'priceAsc') {
       result = result.sort((a, b) => a.price - b.price)
     } else if (sortKey === 'priceDesc') {
@@ -76,7 +87,15 @@ export default function ProductsPage() {
     }
 
     return result
-  }, [products, searchKeyword, minPrice, maxPrice, sortKey])
+  }, [
+    products,
+    searchKeyword,
+    minPrice,
+    maxPrice,
+    sortKey,
+    selectedCategory, // 🔁 追加！
+    selectedTag, // 🔁 追加！
+  ])
 
   return (
     <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
