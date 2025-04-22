@@ -1,53 +1,34 @@
-import 'dotenv/config'
-
-import { initializeApp } from 'firebase/app'
+// scripts/importRakutenProducts.ts
+import { Timestamp, Firestore } from 'firebase-admin/firestore'
 import {
-  getFirestore,
-  collection,
-  doc,
-  setDoc,
-  getDoc,
-} from 'firebase/firestore'
-// import 文（修正済み）
-import { firebaseConfig } from '../lib/firebase/firebase.js'
-import { fetchRakutenItems, mapRakutenItemToProduct } from '../lib/rakuten'
+  fetchRakutenItems,
+  mapRakutenItemToProduct,
+} from '../dist-cli/lib/rakuten.cjs'
 
-// Firebase初期化
-const app = initializeApp(firebaseConfig)
-const db = getFirestore(app)
-
-const importRakutenProducts = async (keyword: string) => {
+export const importRakutenProducts = async (db: Firestore, keyword: string) => {
   console.log(`🔍 楽天APIで「${keyword}」を検索中...`)
-
   const items = await fetchRakutenItems(keyword)
   const products = items.map(mapRakutenItemToProduct)
 
-  for (const product of products) {
-    const ref = doc(collection(db, 'products'), product.id)
-    const snapshot = await getDoc(ref)
+  const now = Timestamp.now()
 
-    if (snapshot.exists()) {
+  for (const product of products) {
+    const ref = db.collection('products').doc(product.id)
+    const snapshot = await ref.get()
+    if (snapshot.exists) {
       console.log(`⚠️ 既に登録済み: ${product.title}`)
       continue
     }
 
-    await setDoc(ref, {
+    await ref.set({
       ...product,
       viewCount: 0,
       clickCount: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     })
+    console.log(`✅ 登録完了: ${product.title}`)
   }
 
   console.log('🎉 登録処理が完了しました。')
 }
-
-// CLI引数でキーワードを取得
-const keywordArg = process.argv[2]
-if (!keywordArg) {
-  console.error('❌ キーワードを指定してください。例: npm run import "レオパ"')
-  process.exit(1)
-}
-
-importRakutenProducts(keywordArg)

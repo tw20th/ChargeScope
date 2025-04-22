@@ -15,17 +15,18 @@ export default function CategoryPage({ params }: Props) {
 
   if (!category) return notFound()
 
-  // ✅ 型を合わせる（Product[]）
+  // ✅ 型エラー回避のため displayCategory を追加
   const products: Product[] = category.products.map((p, i) => ({
-    id: `static-${i}`, // 仮のID（DBと区別つくように）
+    id: `static-${i}`,
     slug: p.slug ?? `static-slug-${i}`,
     title: p.title,
     description: p.description,
-    price: Number(p.price.replace(/[¥,]/g, '')), // ← 数値変換
+    price: Number(p.price.replace(/[¥,]/g, '')),
     image: p.image,
     link: p.link,
     category: category.slug,
-    date: '2025-04-01', // 仮の日付
+    displayCategory: category.name, // ← ここ追加！
+    date: '2025-04-01',
     tags: p.tags ?? [],
   }))
 
@@ -61,7 +62,6 @@ export default function CategoryPage({ params }: Props) {
         ))}
       </div>
 
-      {/* ✅ 関連商品（静的データ対応済み） */}
       <RelatedProducts products={products} />
     </main>
   )
