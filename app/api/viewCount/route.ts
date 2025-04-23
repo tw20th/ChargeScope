@@ -1,6 +1,7 @@
 // app/api/viewCount/route.ts
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/firebase-admin'
+import { adminDb } from '@/lib/firebase-admin'
+;('@/lib/firebase-admin')
 import { FieldValue } from 'firebase-admin/firestore'
 
 export async function POST(req: Request) {
@@ -9,7 +10,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'No slug provided' }, { status: 400 })
 
   try {
-    const ref = db.doc(`products/${slug}`)
+    const ref = adminDb.doc(`products/${slug}`)
     await ref.update({
       viewCount: FieldValue.increment(1),
     })
