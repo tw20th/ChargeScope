@@ -1,68 +1,62 @@
+// app/category/[slug]/page.tsx
 import { notFound } from 'next/navigation'
-import { productCategories, Category } from '@/lib/productCategories'
-import { RelatedProducts } from '@/components/product/RelatedProducts'
-import { Product } from '@/lib/products'
-import Image from 'next/image'
+import { db } from '@/lib/firebase'
+import { collection, query, where, getDocs } from 'firebase/firestore'
+import { ProductCard } from '@/components/product/ProductCard'
+import { Metadata } from 'next'
+import { productCategories } from '@/lib/productCategories'
 
 type Props = {
   params: { slug: string }
 }
 
-export default function CategoryPage({ params }: Props) {
-  const category = productCategories.find(
-    (cat: Category) => cat.slug === params.slug
-  )
+// 📝 動的なメタデータ生成（任意）
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  return {
+    title: `カテゴリ: ${params.slug} | はちゅナビ`,
+    description: `「${params.slug}」カテゴリの商品一覧`,
+  }
+}
 
-  if (!category) return notFound()
+export default async function CategoryPage({ params }: Props) {
+  const { slug } = params
 
-  // ✅ 型エラー回避のため displayCategory を追加
-  const products: Product[] = category.products.map((p, i) => ({
-    id: `static-${i}`,
-    slug: p.slug ?? `static-slug-${i}`,
-    title: p.title,
-    description: p.description,
-    price: Number(p.price.replace(/[¥,]/g, '')),
-    image: p.image,
-    link: p.link,
-    category: category.slug,
-    displayCategory: category.name, // ← ここ追加！
-    date: '2025-04-01',
-    tags: p.tags ?? [],
-  }))
+  // ✅ カテゴリ情報の取得（日本語名表示などのため）
+  const categoryMeta = productCategories.find((cat) => cat.slug === slug)
+  if (!categoryMeta) return notFound()
+
+  // ✅ Firestore から該当カテゴリの商品を取得
+  const q = query(collection(db, 'products'), where('category', '==', slug))
+  const snapshot = await getDocs(q)
+
+  if (snapshot.empty) return notFound()
+
+  const products = snapshot.docs.map((doc) => {
+    const data = doc.data()
+    return {
+      id: doc.id,
+      slug: data.slug,
+      title: data.title,
+      description: data.description || '',
+      price: data.price,
+      image: data.image,
+      link: data.link,
+      tags: data.tags || [],
+      displayCategory: data.displayCategory || slug,
+    }
+  })
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4">{category.name}</h1>
-      <p className="mb-6 text-gray-600">{category.description}</p>
+    <main className="max-w-6xl mx-auto px-4 py-10">
+      <h1 className="text-2xl font-bold mb-6">
+        {categoryMeta.name} カテゴリの商品
+      </h1>
 
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {products.map((product) => (
-          <div key={product.id} className="border p-4 rounded shadow-sm">
-            <Image
-              src={product.image}
-              alt={product.title}
-              width={400}
-              height={300}
-              className="w-full h-auto mb-2 object-contain rounded"
-            />
-            <h2 className="text-xl font-semibold">{product.title}</h2>
-            <p className="text-gray-700">{product.description}</p>
-            <p className="text-blue-600 font-bold mt-1">
-              ¥{product.price.toLocaleString()}
-            </p>
-            <a
-              href={product.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block mt-2 text-sm text-blue-500 underline"
-            >
-              商品ページを見る
-            </a>
-          </div>
+          <ProductCard key={product.id} product={product} />
         ))}
       </div>
-
-      <RelatedProducts products={products} />
     </main>
   )
 }

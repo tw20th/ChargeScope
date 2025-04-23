@@ -1,13 +1,12 @@
 // components/blog/SearchBar.tsx
 'use client'
 
-export const SearchBar = ({
-  value,
-  onChange,
-}: {
-  value: string
-  onChange: (val: string) => void
-}) => {
+type Props = {
+  value?: string
+  onChange?: (val: string) => void
+}
+
+export const SearchBar = ({ value = '', onChange = () => {} }: Props) => {
   return (
     <input
       type="text"

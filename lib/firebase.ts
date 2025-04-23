@@ -1,10 +1,8 @@
 // lib/firebase.ts
-
-import { initializeApp } from 'firebase/app'
+import { initializeApp, getApps, getApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
 
 export const firebaseConfig = {
-  // ✅ ← export を追加
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
@@ -13,5 +11,10 @@ export const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-export const app = initializeApp(firebaseConfig)
-export const db = getFirestore(app)
+// ✅ firebaseApp という名前で export
+export const firebaseApp = !getApps().length
+  ? initializeApp(firebaseConfig)
+  : getApp()
+
+// オマケ：使うならこれもOK
+export const db = getFirestore(firebaseApp)

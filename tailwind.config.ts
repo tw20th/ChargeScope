@@ -1,22 +1,25 @@
-// ✅ 修正後の tailwind.config.ts
+// tailwind.config.ts
 import type { Config } from 'tailwindcss'
-import typography from '@tailwindcss/typography' // ← これが正しい書き方！
+import typography from '@tailwindcss/typography'
+import lineClamp from '@tailwindcss/line-clamp'
 
 const config: Config = {
   content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
       colors: {
-        background: 'var(--background)',
-        foreground: 'var(--foreground)',
+        brand: '#FCD34D', // レオパの黄色
+        accent: '#F472B6', // 薄いピンク（アクセント）
+        bgSoft: '#FDF2F8', // 全体背景：ほんのりピンク
+        darkBrown: '#4B3621', // 深めの茶色（文字・枠）
       },
     },
   },
-  plugins: [typography], // ← require() ではなく変数として渡す
+  plugins: [typography, lineClamp],
 }
 
 export default config

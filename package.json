@@ -13,6 +13,7 @@
     "import-admin": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/importRakutenProducts.admin.ts"
   },
   "dependencies": {
+    "@tailwindcss/line-clamp": "^0.4.4",
     "@tailwindcss/typography": "^0.5.16",
     "clsx": "^2.1.1",
     "csv-parser": "^3.2.0",

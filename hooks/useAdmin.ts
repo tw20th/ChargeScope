@@ -1,14 +1,13 @@
-// hooks/useAdmin.ts
 import { useEffect, useState } from 'react'
 import { getAuth, onAuthStateChanged, getIdTokenResult } from 'firebase/auth'
-import { app } from '@/lib/firebase' // すでに firebase.ts で初期化してるならそれを使う
+import { firebaseApp } from '@/lib/firebase' // ✅ これを使う！
 
 export function useAdmin() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const auth = getAuth(app)
+    const auth = getAuth(firebaseApp) // ✅ 修正！
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {

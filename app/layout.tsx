@@ -2,6 +2,8 @@
 import './globals.css'
 import { ReactNode } from 'react'
 import { Seo } from '@/components/Seo'
+import { Header } from '@/components/common/Header'
+import { Footer } from '@/components/common/Footer'
 
 export const metadata = {
   title: 'はちゅナビ',
@@ -12,10 +14,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ja">
       <head>
-        {/* 全ページ共通のSEO情報 */}
         <Seo />
       </head>
-      <body>{children}</body>
+      <body className="bg-bgSoft text-darkBrown">
+        <Header />
+        <main className="min-h-screen">{children}</main>
+        <Footer />
+      </body>
     </html>
   )
 }
