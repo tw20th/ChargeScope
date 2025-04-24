@@ -3,6 +3,10 @@ import * as admin from "firebase-admin";
 import {v4 as uuid} from "uuid";
 import {generatePromptByWeekday} from "../utils/generatePromptByWeekday";
 import {autoLinkCategories} from "../utils/autoLinkCategories";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const {classifyPost} = require("../lib/classifier/classifyPost.js");
+
+admin.initializeApp();
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -20,7 +24,6 @@ const getUnusedImageAsset = async () => {
   const randomDoc = docs[Math.floor(Math.random() * docs.length)];
   const data = randomDoc.data();
 
-  // 使用済みに更新
   await randomDoc.ref.update({used: true});
 
   return {
@@ -29,8 +32,35 @@ const getUnusedImageAsset = async () => {
   };
 };
 
+// ✅ Markdown本文から冒頭の文をdescriptionとして抽出
+const extractDescriptionFromContent = (
+  content: string,
+  maxLength = 100
+): string => {
+  const withoutTitle = content.replace(/^#\s+.*$/m, "").trim();
+  const sentences = withoutTitle.split(/。|\n/).filter(Boolean);
+  const description = sentences.slice(0, 2).join("。") + "。";
+  return description.length > maxLength ?
+    description.slice(0, maxLength) + "..." :
+    description;
+};
+
+const generateExcerpt = (content: string, maxLength = 60): string => {
+  const withoutTitle = content.replace(/^#\s+.*$/m, "").trim();
+  const firstSentence = withoutTitle.split(/。|\n/).filter(Boolean)[0] || "";
+  return firstSentence.length > maxLength ?
+    firstSentence.slice(0, maxLength) + "..." :
+    firstSentence + "。";
+};
+
+const estimateReadingTime = (text: string): number => {
+  const words = text.replace(/\s+/g, "").length;
+  return Math.max(1, Math.ceil(words / 400));
+};
+
 const generatePost = async (apiKey: string) => {
   const today = new Date();
+  const dateStr = today.toISOString().split("T")[0];
   const weekday = today.getDay();
 
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -69,23 +99,50 @@ const generatePost = async (apiKey: string) => {
   };
 
   const content = json.choices[0].message.content;
-
-  // ✅ Markdownのタイトル（"# タイトル"）を抽出
   const titleMatch = content.match(/^#\s+(.*)$/m);
   const title = titleMatch ? titleMatch[1] : "はちゅブログ記事";
 
+  const description = extractDescriptionFromContent(content);
+  const excerpt = generateExcerpt(content);
+  const readingTime = estimateReadingTime(content);
+
   const imageAsset = await getUnusedImageAsset();
+  const {tags, category} = classifyPost(content);
+
+  const signature = `
+---
+
+この記事を書いた人 🦎  
+**ゆず（爬虫類ブログ歴8年）**  
+「爬虫類との暮らしをもっと楽しく」をテーマに、毎日お届け中！
+
+💬 ご質問・リクエストがあれば、気軽にコメントくださいね。
+  `.trim();
 
   return {
-    title,
     slug: `auto-${uuid().slice(0, 8)}`,
-    description: "初心者向けにレオパの温度管理ポイントを紹介します。",
-    content: autoLinkCategories(content),
+    title,
+    description,
+    excerpt,
+    date: dateStr,
+    updatedAt: dateStr,
+    content: `${autoLinkCategories(content)}\n\n${signature}`,
     image: imageAsset?.url || null,
     imageComment: imageAsset?.comment || null,
-    date: new Date().toISOString().split("T")[0],
+    category,
+    tags,
+    author: "ゆず",
+    reviewed: true,
+    relatedIds: [],
+    readingTime,
+    status: "published",
+    lang: "ja",
+    views: 0,
+    isFeatured: false,
   };
 };
+
+// ✅ 毎日22時に自動投稿する Cloud Function
 export const dailyPost = functions
   .runWith({secrets: ["OPENAI_API_KEY"]})
   .pubsub.schedule("0 22 * * *")

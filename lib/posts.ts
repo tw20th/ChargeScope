@@ -19,12 +19,24 @@ export type Post = {
   slug: string
   title: string
   description: string
+  excerpt?: string
   date: string
+  updatedAt?: string
   content: string
   image?: string
   imageComment?: string
   category?: string
+  categoryDisplayName?: string
   tags?: string[]
+  author?: string
+  reviewed?: boolean
+  relatedIds?: string[]
+  readingTime?: number
+  status?: 'draft' | 'published'
+  metaKeywords?: string[]
+  lang?: 'ja' | 'en'
+  views?: number
+  isFeatured?: boolean
 }
 
 // 🔽 記事の詳細を取得（slug指定）
@@ -50,10 +62,10 @@ export const getPaginatedPosts = async (
   pageSize: number,
   cursor?: QueryDocumentSnapshot<DocumentData> | null,
   category: string = 'all',
-  tag?: string
+  tag?: string,
+  sortType: 'new' | 'popular' | 'featured' = 'new' // 🔽 追加！
 ) => {
   const baseRef = collection(db, 'posts')
-
   const filters = []
 
   if (category !== 'all') {
@@ -64,7 +76,16 @@ export const getPaginatedPosts = async (
     filters.push(where('tags', 'array-contains', tag))
   }
 
-  let q = query(baseRef, ...filters, orderBy('date', 'desc'), limit(pageSize))
+  let q = query(baseRef, ...filters)
+
+  if (sortType === 'popular') {
+    q = query(q, orderBy('views', 'desc'))
+  } else if (sortType === 'featured') {
+    filters.push(where('isFeatured', '==', true))
+    q = query(baseRef, ...filters, orderBy('date', 'desc'))
+  } else {
+    q = query(q, orderBy('date', 'desc'))
+  }
 
   if (cursor) {
     q = query(q, startAfter(cursor))

@@ -1,10 +1,13 @@
-// hooks/usePaginatedPosts.ts
 import { useEffect, useState, useCallback } from 'react'
 import { getPaginatedPosts, Post } from '@/lib/posts'
 import { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore'
 
-// ✅ カテゴリ対応の引数を追加！
-export const usePaginatedPosts = (pageSize = 5, category: string = 'all') => {
+// ✅ 並び順にも対応するよう引数を追加！
+export const usePaginatedPosts = (
+  pageSize = 5,
+  category: string = 'all',
+  sortType: 'new' | 'popular' | 'featured' = 'new'
+) => {
   const [posts, setPosts] = useState<Post[]>([])
   const [cursor, setCursor] =
     useState<QueryDocumentSnapshot<DocumentData> | null>(null)
@@ -17,7 +20,9 @@ export const usePaginatedPosts = (pageSize = 5, category: string = 'all') => {
       const { posts, lastVisible } = await getPaginatedPosts(
         pageSize,
         next ? cursor : null,
-        category // ✅ ここでカテゴリも渡す！
+        category,
+        undefined, // 🔍 タグでのフィルターは未使用のため null or undefined
+        sortType
       )
       setPosts(posts)
 
@@ -26,7 +31,7 @@ export const usePaginatedPosts = (pageSize = 5, category: string = 'all') => {
       }
       setCursor(lastVisible)
     },
-    [pageSize, cursor, category] // ✅ categoryも依存に追加
+    [pageSize, cursor, category, sortType] // ✅ sortTypeも依存に追加！
   )
 
   const loadNext = () => fetchPosts(true)
@@ -38,12 +43,12 @@ export const usePaginatedPosts = (pageSize = 5, category: string = 'all') => {
     fetchPosts()
   }
 
-  // ✅ カテゴリが変わったら履歴リセットして再取得
+  // ✅ category や sortType が変わったら履歴リセット
   useEffect(() => {
-    setHistory([]) // 履歴をリセット
+    setHistory([])
     setCursor(null)
     fetchPosts()
-  }, [fetchPosts]) // categoryも依存に含まれているのでOK
+  }, [fetchPosts]) // fetchPosts が全ての依存を持っているのでOK
 
   return {
     posts,

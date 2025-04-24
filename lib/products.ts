@@ -23,6 +23,7 @@ export type Product = {
   displayCategory: string // ✅ ← これを追加！
   tags?: string[]
   date: string
+  name: string // ← これを追加！
 }
 
 // 🔽 商品一覧（ページネーション対応）

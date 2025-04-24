@@ -1,48 +1,23 @@
-// functions/src/utils/generatePromptByWeekday.ts
-export function generatePromptByWeekday(weekday: number): string {
-  const prompts: { [key: number]: { theme: string; keywords: string[] } } = {
-    0: {
-      // Sunday
-      theme: "初心者からよくある質問とその回答",
-      keywords: ["レオパ", "初心者", "飼育", "疑問"],
-    },
-    1: {
-      theme: "レオパ飼育の基礎ガイド",
-      keywords: ["レオパ", "飼い方", "飼育", "初心者"],
-    },
-    2: {
-      theme: "温度と湿度の正しい管理方法",
-      keywords: ["レオパ", "温度管理", "湿度", "ケージ"],
-    },
-    3: {
-      theme: "レオパの食事と給餌方法",
-      keywords: ["レオパ", "餌", "与え方", "食事"],
-    },
-    4: {
-      theme: "病気の兆候とそのケア",
-      keywords: ["レオパ", "病気", "脱皮", "対処法"],
-    },
-    5: {
-      theme: "レオパのケージレイアウトと設備",
-      keywords: ["レオパ", "ケージ", "設備", "レイアウト"],
-    },
-    6: {
-      theme: "ゆずの飼育エッセイや体験談",
-      keywords: ["レオパ", "体験談", "コラム", "失敗談"],
-    },
+// utils/generatePromptByWeekday.ts
+
+export const generatePromptByWeekday = (weekday: number): string => {
+  const themeMap: Record<number, string[]> = {
+    0: ["レオパの飼育ポイント", "レオパのケージレイアウト"],
+    1: ["フトアゴの食事管理", "フトアゴに最適な温度環境"],
+    2: ["初心者向け飼育スターター", "爬虫類グッズのメンテナンス"],
+    3: ["ケージのおしゃれインテリア", "ライトの選び方"],
+    4: ["エサの与え方", "餌の保存方法"],
+    5: ["多頭飼いの注意点", "性格の違いまとめ"],
+    6: ["健康チェックの方法", "脱皮時のサポート"],
   };
 
-  const data = prompts[weekday];
-  const keywordsText = data.keywords.map((k) => `「${k}」`).join("、");
+  const themes = themeMap[weekday] || themeMap[0];
+  const selectedTheme = themes[Math.floor(Math.random() * themes.length)];
 
   return `
-以下の条件でMarkdown形式のブログ記事を生成してください。
-
-■ キャラクター：「ゆず」という8年飼育歴のある女性。優しく丁寧な語り口。
-■ テーマ：「${data.theme}」
-■ キーワード：${keywordsText}
-■ 文字数：400文字程度
-■ 構成：タイトル・導入・H2見出し・まとめ
-やさしい日本語で、自然なSEOを意識して書いてください。
-  `;
-}
+今日は「${selectedTheme}」というテーマで、初心者の方に向けて、わかりやすくていねいにブログ記事を書いてください。
+- 冒頭に簡単なあいさつと導入を入れてください。
+- SEOを意識しつつ、やさしい日本語で説明してください。
+- Markdown形式で、# タイトル、導入文、## セクション（2つ以上）、# まとめ、の構成でお願いします。
+  `.trim();
+};

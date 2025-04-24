@@ -1,7 +1,6 @@
 // app/layout.tsx
 import './globals.css'
 import { ReactNode } from 'react'
-import { Seo } from '@/components/Seo'
 import { Header } from '@/components/common/Header'
 import { Footer } from '@/components/common/Footer'
 
@@ -13,9 +12,6 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ja">
-      <head>
-        <Seo />
-      </head>
       <body className="bg-bgSoft text-darkBrown">
         <Header />
         <main className="min-h-screen">{children}</main>

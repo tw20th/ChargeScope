@@ -12,10 +12,14 @@ export default function BlogPage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [searchKeyword, setSearchKeyword] = useState('')
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
+  const [sortType, setSortType] = useState<'new' | 'popular' | 'featured'>(
+    'new'
+  ) // 🆕 追加！
 
   const { posts, loadNext, loadPrev, hasNext, hasPrev } = usePaginatedPosts(
     10,
-    selectedCategory
+    selectedCategory,
+    sortType // 🆕 ソートタイプを渡す
   )
 
   // 🔍 キーワード + タグ フィルター（フロント）
@@ -51,7 +55,7 @@ export default function BlogPage() {
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4">新着ブログ記事</h1>
+      <h1 className="text-3xl font-bold mb-4">ブログ記事一覧</h1>
 
       <SearchBar value={searchKeyword} onChange={setSearchKeyword} />
 
@@ -59,12 +63,46 @@ export default function BlogPage() {
         selected={selectedCategory}
         onSelect={(cat) => {
           setSelectedCategory(cat)
-          setSelectedTag(null) // ✅ カテゴリ変更時はタグ選択リセット
+          setSelectedTag(null)
         }}
       />
 
-      {/* 🔽 人気順タグフィルター */}
-      <div className="flex gap-2 mt-2 flex-wrap">
+      {/* 🔽 並び替えボタン */}
+      <div className="flex gap-2 mt-4">
+        <button
+          onClick={() => setSortType('new')}
+          className={`px-3 py-1 rounded-full ${
+            sortType === 'new'
+              ? 'bg-blue-600 text-white'
+              : 'border border-blue-600 text-blue-600'
+          }`}
+        >
+          新着順
+        </button>
+        <button
+          onClick={() => setSortType('popular')}
+          className={`px-3 py-1 rounded-full ${
+            sortType === 'popular'
+              ? 'bg-blue-600 text-white'
+              : 'border border-blue-600 text-blue-600'
+          }`}
+        >
+          人気順
+        </button>
+        <button
+          onClick={() => setSortType('featured')}
+          className={`px-3 py-1 rounded-full ${
+            sortType === 'featured'
+              ? 'bg-blue-600 text-white'
+              : 'border border-blue-600 text-blue-600'
+          }`}
+        >
+          おすすめ
+        </button>
+      </div>
+
+      {/* 🔽 タグフィルター */}
+      <div className="flex gap-2 mt-4 flex-wrap">
         <button
           onClick={() => setSelectedTag(null)}
           className={`px-3 py-1 rounded-full border ${
@@ -83,7 +121,7 @@ export default function BlogPage() {
                 : 'text-blue-600 hover:bg-blue-100'
             }`}
           >
-            #{tag}{' '}
+            #{tag}
             <span className="text-xs text-gray-400 ml-1">
               ({tagCounts[tag]})
             </span>
@@ -91,7 +129,7 @@ export default function BlogPage() {
         ))}
       </div>
 
-      {/* 記事一覧 */}
+      {/* 🔽 記事一覧 */}
       <div className="space-y-4 mt-4">
         {filteredPosts.map((post) => (
           <BlogCard key={post.slug} post={post} />
