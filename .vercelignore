@@ -1,2 +1,3 @@
 scripts/addMetaFieldsToProducts.ts
+scripts/exportSlugs.ts
 serviceAccountKey.json
