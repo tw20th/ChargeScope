@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/firebase-admin'
+import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
 
 export async function GET(req: NextRequest) {
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const ref = db.doc(`products/${slug}`)
+    const ref = adminDb.doc(`products/${slug}`)
     const snapshot = await ref.get()
 
     if (!snapshot.exists) {
