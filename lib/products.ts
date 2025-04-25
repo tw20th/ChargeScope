@@ -12,6 +12,7 @@ import {
   QueryDocumentSnapshot,
   DocumentData,
 } from 'firebase/firestore'
+import { doc, getDoc } from 'firebase/firestore'
 
 export type Product = {
   id: string
@@ -157,4 +158,17 @@ export const getAllProductTags = async (): Promise<string[]> => {
     }
   })
   return Array.from(tags)
+}
+
+export const getProductsByIds = async (ids: string[]): Promise<Product[]> => {
+  if (!ids.length) return []
+
+  const products = await Promise.all(
+    ids.map(async (id) => {
+      const snap = await getDoc(doc(db, 'products', id))
+      return snap.exists() ? formatProduct(snap) : null
+    })
+  )
+
+  return products.filter((p): p is Product => p !== null)
 }
