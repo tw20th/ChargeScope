@@ -105,9 +105,17 @@ const generatePost = async (apiKey: string) => {
   const description = extractDescriptionFromContent(content);
   const excerpt = generateExcerpt(content);
   const readingTime = estimateReadingTime(content);
-
-  const imageAsset = await getUnusedImageAsset();
   const {tags, category} = classifyPost(content);
+  const imageAsset = await getUnusedImageAsset();
+
+  // ✅ 商品をカテゴリで取得
+  const productSnap = await db
+    .collection("products")
+    .where("category", "==", category)
+    .limit(2)
+    .get();
+
+  const relatedIds = productSnap.docs.map((doc) => doc.id);
 
   const signature = `
 ---
@@ -131,9 +139,9 @@ const generatePost = async (apiKey: string) => {
     imageComment: imageAsset?.comment || null,
     category,
     tags,
+    relatedIds,
     author: "ゆず",
     reviewed: true,
-    relatedIds: [],
     readingTime,
     status: "published",
     lang: "ja",

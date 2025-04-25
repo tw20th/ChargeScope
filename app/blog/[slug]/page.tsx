@@ -1,8 +1,11 @@
 import { getAllPosts, getPostBySlug, getRelatedPosts } from '@/lib/posts'
+import { getProductsByIds } from '@/lib/firebase/products'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import ReactMarkdown from 'react-markdown'
-import { RelatedPosts } from '@/components/blog/RelatedPosts' // ← 追加！
+import { RelatedPosts } from '@/components/blog/RelatedPosts'
+import { ProductCard } from '@/components/product/ProductCard' // ✅ 追加！
+import type { Product } from '@/lib/products' // 👈 型インポートを追加
 
 type Props = {
   params: {
@@ -46,8 +49,13 @@ export default async function BlogDetailPage({ params }: Props) {
     post.slug
   )
 
+  // ✅ 関連商品を取得
+  const relatedProducts = post.relatedIds?.length
+    ? await getProductsByIds(post.relatedIds)
+    : []
+
   return (
-    <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+    <main className="max-w-3xl mx-auto px-4 py-8 space-y-10">
       {post.image && (
         <figure className="aspect-video relative rounded-xl overflow-hidden">
           <Image
@@ -70,7 +78,21 @@ export default async function BlogDetailPage({ params }: Props) {
         <ReactMarkdown>{post.content || ''}</ReactMarkdown>
       </div>
 
-      {/* ✅ ここに関連記事セクションを追加！ */}
+      {/* ✅ 関連商品セクション */}
+      {relatedProducts.length > 0 && (
+        <section className="pt-10 border-t border-gray-200">
+          <h2 className="text-xl font-bold mb-4">
+            この記事に関連するおすすめ商品
+          </h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            {relatedProducts.map((product: Product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ✅ 関連記事セクション */}
       <RelatedPosts posts={relatedPosts} />
     </main>
   )
