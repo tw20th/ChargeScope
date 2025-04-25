@@ -1,3 +1,5 @@
+// ✅ lib/products.ts（Timestampの警告を回避する修正済みバージョン）
+
 import { db } from './firebase'
 import {
   collection,
@@ -20,13 +22,25 @@ export type Product = {
   image: string
   link: string
   category: string
-  displayCategory: string // ✅ ← これを追加！
+  displayCategory: string
   tags?: string[]
   date: string
-  name: string // ← これを追加！
+  name: string
+  createdAt?: string | null
+  updatedAt?: string | null
 }
 
-// 🔽 商品一覧（ページネーション対応）
+// 🔧 Timestampを文字列に変換する共通関数
+const formatProduct = (doc: DocumentData): Product => {
+  const data = doc.data()
+  return {
+    id: doc.id,
+    ...data,
+    createdAt: data.createdAt?.toDate().toISOString() ?? null,
+    updatedAt: data.updatedAt?.toDate().toISOString() ?? null,
+  } as Product
+}
+
 export const getPaginatedProducts = async (
   pageSize: number,
   cursor?: QueryDocumentSnapshot<DocumentData> | null,
@@ -51,17 +65,54 @@ export const getPaginatedProducts = async (
   }
 
   const snapshot = await getDocs(q)
-  const products = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Product[]
-
+  const products = snapshot.docs.map(formatProduct)
   const lastVisible = snapshot.docs[snapshot.docs.length - 1] || null
 
   return { products, lastVisible }
 }
 
-// 🔽 カテゴリごとの商品取得
+export const getAllProducts = async (): Promise<Product[]> => {
+  const snapshot = await getDocs(
+    query(collection(db, 'products'), orderBy('date', 'desc'))
+  )
+  return snapshot.docs.map(formatProduct)
+}
+
+export const getProductBySlug = async (
+  slug: string
+): Promise<Product | null> => {
+  const q = query(
+    collection(db, 'products'),
+    where('slug', '==', slug),
+    limit(1)
+  )
+  const snapshot = await getDocs(q)
+  if (snapshot.empty) return null
+  return formatProduct(snapshot.docs[0])
+}
+
+export const getRelatedProducts = async (
+  category: string,
+  tags: string[],
+  excludeSlug: string
+): Promise<Product[]> => {
+  const filters = [where('category', '==', category)]
+
+  if (tags.length > 0) {
+    filters.push(where('tags', 'array-contains-any', tags))
+  }
+
+  const q = query(
+    collection(db, 'products'),
+    ...filters,
+    orderBy('date', 'desc'),
+    limit(6)
+  )
+
+  const snapshot = await getDocs(q)
+  return snapshot.docs.map(formatProduct).filter((p) => p.slug !== excludeSlug)
+}
+
 export const getProductsByCategory = async (
   categorySlug: string
 ): Promise<Product[]> => {
@@ -70,40 +121,20 @@ export const getProductsByCategory = async (
     where('category', '==', categorySlug),
     orderBy('date', 'desc')
   )
-
   const snapshot = await getDocs(q)
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Product[]
+  return snapshot.docs.map(formatProduct)
 }
 
-// 🔽 タグによる商品取得
 export const getProductsByTag = async (tag: string): Promise<Product[]> => {
   const q = query(
     collection(db, 'products'),
     where('tags', 'array-contains', tag),
     orderBy('date', 'desc')
   )
-
   const snapshot = await getDocs(q)
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Product[]
+  return snapshot.docs.map(formatProduct)
 }
 
-// 🔽 全商品取得（オプション：generateStaticParamsなどに）
-export const getAllProducts = async (): Promise<Product[]> => {
-  const snapshot = await getDocs(
-    query(collection(db, 'products'), orderBy('date', 'desc'))
-  )
-
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Product[]
-}
 export const getAllProductCategories = async (): Promise<string[]> => {
   const snapshot = await getDocs(collection(db, 'products'))
   const categories = new Set<string>()
@@ -126,41 +157,4 @@ export const getAllProductTags = async (): Promise<string[]> => {
     }
   })
   return Array.from(tags)
-}
-
-export const getProductBySlug = async (
-  slug: string
-): Promise<Product | null> => {
-  const q = query(
-    collection(db, 'products'),
-    where('slug', '==', slug),
-    limit(1)
-  )
-  const snapshot = await getDocs(q)
-  if (snapshot.empty) return null
-  const doc = snapshot.docs[0]
-  return {
-    id: doc.id,
-    ...(doc.data() as Omit<Product, 'id'>),
-  }
-}
-
-export const getRelatedProducts = async (
-  category: string,
-  tags: string[],
-  excludeSlug: string
-): Promise<Product[]> => {
-  const q = query(
-    collection(db, 'products'),
-    where('category', '==', category),
-    where('tags', 'array-contains-any', tags),
-    orderBy('date', 'desc'),
-    limit(6)
-  )
-
-  const snapshot = await getDocs(q)
-  const all = snapshot.docs.map((doc) => doc.data() as Product)
-
-  // 表示中の商品は除外
-  return all.filter((p) => p.slug !== excludeSlug)
 }

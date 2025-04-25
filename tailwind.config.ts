@@ -1,7 +1,7 @@
 // tailwind.config.ts
 import type { Config } from 'tailwindcss'
 import typography from '@tailwindcss/typography'
-import lineClamp from '@tailwindcss/line-clamp'
+// import lineClamp from '@tailwindcss/line-clamp' // ❌ ← 削除でOK！
 
 const config: Config = {
   content: [
@@ -19,7 +19,10 @@ const config: Config = {
       },
     },
   },
-  plugins: [typography, lineClamp],
+  plugins: [
+    typography,
+    // lineClamp ← 削除してOK（Tailwind v3.3+ なら標準対応済み）
+  ],
 }
 
 export default config

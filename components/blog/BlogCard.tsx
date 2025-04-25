@@ -1,7 +1,8 @@
 import Link from 'next/link'
+import Image from 'next/image' // ✅ これを追加！
 import { Post } from '@/lib/posts'
 import { TagBadge } from './TagBadge'
-import { CategoryLabel } from './CategoryLabel' // ← 追加
+import { CategoryLabel } from './CategoryLabel'
 
 export const BlogCard = ({ post }: { post: Post }) => {
   return (
@@ -11,13 +12,13 @@ export const BlogCard = ({ post }: { post: Post }) => {
     >
       <div className="flex flex-col h-full">
         {/* ✅ アイキャッチ画像（上部） */}
-        {post.image && (
-          <img
-            src={post.image}
-            alt={post.title}
-            className="w-full h-48 object-cover"
-          />
-        )}
+        <Image
+          src={post.image || '/fallback.jpg'}
+          alt={post.title}
+          width={800}
+          height={400}
+          className="object-cover w-full h-48 rounded-lg"
+        />
 
         <div className="p-4 flex flex-col justify-between flex-1">
           {post.category && (
