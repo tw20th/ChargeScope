@@ -1,5 +1,5 @@
 import { getAllPosts, getPostBySlug, getRelatedPosts } from '@/lib/posts'
-import { getProductsByIds } from '@/lib/firebase/products'
+import { getProductsByIds } from '@/lib/products'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import ReactMarkdown from 'react-markdown'
