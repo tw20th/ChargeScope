@@ -1,56 +1,57 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-require('dotenv').config()
+const dotenv = require('dotenv')
+dotenv.config()
 
 const admin = require('firebase-admin')
-const {
-  fetchRakutenItems,
-  mapRakutenItemToProduct,
-} = require('../dist-cli/lib/rakuten.cjs')
+const { getFirestore } = require('firebase-admin/firestore')
 const serviceAccount = require('../serviceAccountKey.json')
 
-// Firebase Admin 初期化
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-})
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  })
+}
 
-const db = admin.firestore()
+const db = getFirestore()
 
-const importRakutenProducts = async (keyword) => {
+const run = async () => {
+  const keyword = process.argv[2]
+  const isForceUpdate = process.argv.includes('--force')
+
+  if (!keyword) {
+    console.error(
+      '❌ キーワードを指定してください（例: node importRakutenProducts.admin.cjs "レオパ"）'
+    )
+    process.exit(1)
+  }
+
   console.log(`🔍 楽天APIで「${keyword}」を検索中...`)
 
-  const items = await fetchRakutenItems(keyword)
-  const products = items.map(mapRakutenItemToProduct)
+  const rakuten = await import('../lib/rakuten.js')
+  const items = await rakuten.fetchRakutenItems(keyword)
+  const products = items
+    .map((item) => rakuten.mapRakutenItemToProduct(item))
+    .filter(Boolean)
 
   for (const product of products) {
     const ref = db.collection('products').doc(product.id)
     const snapshot = await ref.get()
 
-    if (snapshot.exists) {
-      console.log(`⚠️ 既に登録済み: ${product.title}`)
-      continue
-    }
+    const now = admin.firestore.Timestamp.now()
 
     await ref.set({
       ...product,
-      viewCount: 0,
-      clickCount: 0,
-      createdAt: admin.firestore.Timestamp.now(),
-      updatedAt: admin.firestore.Timestamp.now(),
+      isPopular: false, // ✅ デフォルトfalse
+      popularityRank: null, // ✅ デフォルトnull
+      createdAt: snapshot.exists ? snapshot.data().createdAt : now,
+      updatedAt: now,
     })
 
-    console.log(`✅ 登録完了: ${product.title}`)
+    console.log(
+      `${snapshot.exists ? '🔁 上書き保存' : '✅ 新規登録'}: ${product.title}`
+    )
   }
 
-  console.log('🎉 登録処理が完了しました。')
+  console.log('🎉 全て完了しました。')
 }
 
-// CLI引数からキーワード取得
-const keyword = process.argv[2]
-if (!keyword) {
-  console.error(
-    '❌ キーワードを指定してください。例: node importRakutenProductsAdmin.cjs "レオパ"'
-  )
-  process.exit(1)
-}
-
-importRakutenProducts(keyword)
+run()

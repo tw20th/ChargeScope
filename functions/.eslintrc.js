@@ -21,11 +21,13 @@ module.exports = {
   ignorePatterns: ["/lib/**/*", "/generated/**/*"],
   plugins: ["@typescript-eslint", "import"],
   rules: {
-    "quotes": ["error", "double"],
+    quotes: ["error", "double"],
     "import/no-unresolved": 0,
-    "indent": ["error", 2],
-    "semi": ["error", "always"],
-    "quote-props": ["error", "consistent-as-needed"],
-    "require-jsdoc": "off", // 👈 これを追加
+    indent: ["error", 2],
+    semi: ["error", "always"],
+    "quote-props": ["off"], // ← ここ緩和
+    "operator-linebreak": ["off"], // ← ここ緩和
+    "require-jsdoc": "off",
+    "object-curly-spacing": ["error", "always"],
   },
 };

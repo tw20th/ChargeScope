@@ -15,8 +15,13 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'hatyu-navi.vercel.app', // ✅ fallback画像をVercelから配信するなら追加
+        hostname: 'hatyu-navi.vercel.app',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com', // ✅ これを追加！！
+        pathname: '/v0/b/hatyu-navi.firebasestorage.app/o/**',
       },
     ],
   },

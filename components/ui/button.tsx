@@ -1,25 +1,40 @@
 'use client'
 
-import { ButtonHTMLAttributes } from 'react'
-import clsx from 'clsx'
+import { cva } from 'class-variance-authority'
+import { cn } from '@/lib/utils'
+import { ReactNode } from 'react'
+import Link from 'next/link'
 
-type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'outline'
+type ButtonProps = {
+  children: ReactNode
+  href: string
+  variant?: 'primary' | 'secondary'
 }
 
-export const Button = ({ children, variant = 'primary', className, ...props }: Props) => {
+const buttonStyles = cva(
+  'inline-block px-6 py-3 rounded-full text-sm font-semibold transition',
+  {
+    variants: {
+      variant: {
+        primary: 'bg-green-600 text-white hover:bg-green-700',
+        secondary:
+          'bg-white text-green-600 border border-green-600 hover:bg-green-50',
+      },
+    },
+    defaultVariants: {
+      variant: 'primary',
+    },
+  }
+)
+
+export const Button = ({
+  children,
+  href,
+  variant = 'primary',
+}: ButtonProps) => {
   return (
-    <button
-      {...props}
-      className={clsx(
-        'px-4 py-2 rounded-md font-medium transition',
-        variant === 'primary'
-          ? 'bg-blue-600 text-white hover:bg-blue-700'
-          : 'border border-gray-300 text-gray-700 hover:bg-gray-100',
-        className
-      )}
-    >
+    <Link href={href} className={cn(buttonStyles({ variant }))}>
       {children}
-    </button>
+    </Link>
   )
 }

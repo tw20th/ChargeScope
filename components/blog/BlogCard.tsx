@@ -13,7 +13,11 @@ export const BlogCard = ({ post }: { post: Post }) => {
       <div className="flex flex-col h-full">
         {/* ✅ アイキャッチ画像（上部） */}
         <Image
-          src={post.image || '/fallback.jpg'}
+          src={
+            post.image && !post.image.includes('your-image-url.com')
+              ? post.image
+              : 'https://firebasestorage.googleapis.com/v0/b/hatyu-navi.firebasestorage.app/o/gecko-cute.jpg?alt=media&token=1d5f62aa-9982-47a5-91eb-950716bb6259'
+          }
           alt={post.title}
           width={800}
           height={400}

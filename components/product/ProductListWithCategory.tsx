@@ -1,18 +1,22 @@
-// components/product/ProductListWithCategory.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
 import { ProductCard } from './ProductCard'
 import { db } from '@/lib/firebase'
 import { collection, query, where, getDocs } from 'firebase/firestore'
-import { productCategories } from '@/lib/productCategories'
+import { CategorySelector } from './CategorySelector'
+import { LoadMoreButton } from '@/components/ui/LoadMoreButton' // ✅ ここ追加！
+import Link from 'next/link'
 
 type Props = {
   searchKeyword: string
+  selectedCategory: string
 }
 
-export const ProductListWithCategory = ({ searchKeyword }: Props) => {
-  const [selected, setSelected] = useState('cage')
+export const ProductListWithCategory = ({
+  searchKeyword,
+  selectedCategory,
+}: Props) => {
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
 
@@ -29,8 +33,8 @@ export const ProductListWithCategory = ({ searchKeyword }: Props) => {
   }
 
   useEffect(() => {
-    fetchProducts(selected)
-  }, [selected])
+    fetchProducts(selectedCategory)
+  }, [selectedCategory])
 
   const filteredProducts = products.filter((product) => {
     const keyword = searchKeyword.toLowerCase()
@@ -40,36 +44,26 @@ export const ProductListWithCategory = ({ searchKeyword }: Props) => {
     )
   })
 
+  const displayedProducts = filteredProducts.slice(0, 6) // ✅ 表示数を制限！
+
   return (
     <div className="space-y-6">
-      {/* カテゴリボタン */}
-      <div className="flex flex-wrap gap-2">
-        {productCategories.map((cat) => (
-          <button
-            key={cat.slug}
-            onClick={() => setSelected(cat.slug)}
-            className={`px-4 py-2 rounded-full transition ${
-              selected === cat.slug
-                ? 'bg-green-500 text-white'
-                : 'bg-green-100 text-green-700 hover:bg-green-200'
-            }`}
-          >
-            {cat.name}
-          </button>
-        ))}
-      </div>
-
       {/* 商品一覧 */}
       {loading ? (
         <p>読み込み中...</p>
       ) : filteredProducts.length === 0 ? (
         <p className="text-gray-500">該当する商品が見つかりませんでした。</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {displayedProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+
+          {/* ✅ もっと見るボタン */}
+          {filteredProducts.length > 6 && <LoadMoreButton href="/products" />}
+        </>
       )}
     </div>
   )

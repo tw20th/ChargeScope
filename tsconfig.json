@@ -6,9 +6,10 @@
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "ESNext", // ← ✅ ESM対応
-    "moduleResolution": "node", // ← ✅ Node.jsモジュール解決に変更
-    "resolveJsonModule": true, // ← ✅ JSON読み込み有効化
+    "target": "ES2015", // ← ✅ 追加！！
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,

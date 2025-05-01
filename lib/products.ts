@@ -27,6 +27,8 @@ export type Product = {
   tags?: string[]
   date: string
   name: string
+  isPopular?: boolean // ✅ 追加
+  popularityRank?: number // ✅ 追加
   createdAt?: string | null
   updatedAt?: string | null
 }
@@ -36,10 +38,22 @@ const formatProduct = (doc: DocumentData): Product => {
   const data = doc.data()
   return {
     id: doc.id,
-    ...data,
+    slug: data.slug,
+    title: data.title,
+    description: data.description,
+    price: data.price,
+    image: data.image,
+    link: data.link,
+    category: data.category,
+    displayCategory: data.displayCategory,
+    tags: data.tags ?? [],
+    date: data.date,
+    name: data.name,
+    isPopular: data.isPopular ?? false, // ✅ 追加
+    popularityRank: data.popularityRank ?? null, // ✅ 追加
     createdAt: data.createdAt?.toDate().toISOString() ?? null,
     updatedAt: data.updatedAt?.toDate().toISOString() ?? null,
-  } as Product
+  }
 }
 
 export const getPaginatedProducts = async (

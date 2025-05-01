@@ -14,6 +14,17 @@ import {
 } from 'firebase/firestore'
 import { db } from '../firebase'
 import { Product } from '../products'
+import { doc, getDoc } from 'firebase/firestore'
+
+const formatProduct = (doc: DocumentData): Product => {
+  const data = doc.data()
+  return {
+    id: doc.id,
+    ...data,
+    createdAt: data.createdAt?.toDate().toISOString() ?? null,
+    updatedAt: data.updatedAt?.toDate().toISOString() ?? null,
+  } as Product
+}
 
 export const getPaginatedProducts = async (
   limitCount: number,
@@ -49,4 +60,17 @@ export const getPaginatedProducts = async (
     products: snapshot.docs.map((doc) => doc.data() as Product),
     lastVisible: snapshot.docs[snapshot.docs.length - 1] ?? null,
   }
+}
+// 🔽 商品IDの配列から、該当する商品データを取得
+export const getProductsByIds = async (ids: string[]): Promise<Product[]> => {
+  if (!ids.length) return []
+
+  const products = await Promise.all(
+    ids.map(async (id) => {
+      const snap = await getDoc(doc(db, 'products', id))
+      return snap.exists() ? formatProduct(snap) : null
+    })
+  )
+
+  return products.filter((p): p is Product => p !== null)
 }

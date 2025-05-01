@@ -47,8 +47,14 @@ const formatPost = (doc: DocumentData): Post => {
     description: data.description,
     excerpt: data.excerpt,
     date: data.date,
-    updatedAt: data.updatedAt?.toDate().toISOString() ?? null,
-    createdAt: data.createdAt?.toDate().toISOString() ?? null,
+    updatedAt:
+      typeof data.updatedAt === 'string'
+        ? data.updatedAt
+        : data.updatedAt?.toDate().toISOString() ?? null,
+    createdAt:
+      typeof data.createdAt === 'string'
+        ? data.createdAt
+        : data.createdAt?.toDate().toISOString() ?? null,
     content: data.content,
     image: data.image,
     imageComment: data.imageComment,
