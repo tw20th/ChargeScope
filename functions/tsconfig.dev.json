@@ -1,3 +1,5 @@
 {
-  "include": ["src", ".eslintrc.js"]
+  "include": [
+    ".eslintrc.js"
+  ]
 }

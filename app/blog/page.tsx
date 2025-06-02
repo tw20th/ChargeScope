@@ -1,155 +1,134 @@
-'use client'
+"use client";
 
-import { useState, useMemo } from 'react'
-import { usePaginatedPosts } from '@/hooks/usePaginatedPosts'
-import { CategoryFilter } from '@/components/blog/CategoryFilter'
-import { SearchBar } from '@/components/blog/SearchBar'
-import { BlogCard } from '@/components/blog/BlogCard'
-import { Pagination } from '@/components/blog/Pagination'
-import { Post } from '@/lib/posts'
+import { useBlogs } from "@/hooks/useBlogs";
+import { BlogCard } from "@/components/blog/BlogCard";
+import { TagList } from "@/components/blog/TagList";
+import { useSortedBlogs, BlogSortOption } from "@/hooks/useSortedBlogs";
+import { usePagination } from "@/hooks/usePagination";
+import { useState } from "react";
+import { SearchInput } from "@/components/common/SearchInput";
+import { BlogCardSkeleton } from "@/components/blog/BlogCardSkeleton";
+import { motion } from "framer-motion";
 
 export default function BlogPage() {
-  const [selectedCategory, setSelectedCategory] = useState('all')
-  const [searchKeyword, setSearchKeyword] = useState('')
-  const [selectedTag, setSelectedTag] = useState<string | null>(null)
-  const [sortType, setSortType] = useState<'new' | 'popular' | 'featured'>(
-    'new'
-  ) // 🆕 追加！
+  const { blogs, loading } = useBlogs();
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [keyword, setKeyword] = useState("");
+  const [sortOption, setSortOption] = useState<BlogSortOption>("latest");
 
-  const { posts, loadNext, loadPrev, hasNext, hasPrev } = usePaginatedPosts(
-    10,
-    selectedCategory,
-    sortType // 🆕 ソートタイプを渡す
-  )
+  const sorted = useSortedBlogs(blogs, sortOption);
 
-  // 🔍 キーワード + タグ フィルター（フロント）
-  const filteredPosts = useMemo(() => {
-    let result = posts
+  const filtered = sorted.filter((b) => {
+    const matchesTag = selectedTag
+      ? (b.tags ?? []).includes(selectedTag)
+      : true;
+    const matchesKeyword =
+      keyword === "" ||
+      b.title.toLowerCase().includes(keyword.toLowerCase()) ||
+      b.tags.some((t) => t.toLowerCase().includes(keyword.toLowerCase()));
+    return matchesTag && matchesKeyword;
+  });
 
-    if (searchKeyword) {
-      result = result.filter(
-        (post: Post) =>
-          post.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-          post.description?.toLowerCase().includes(searchKeyword.toLowerCase())
-      )
-    }
-
-    if (selectedTag) {
-      result = result.filter((post) => post.tags?.includes(selectedTag))
-    }
-
-    return result
-  }, [searchKeyword, selectedTag, posts])
-
-  // ✅ タグ出現回数を集計し、人気順で並び替え
-  const tagCounts: { [tag: string]: number } = {}
-  posts.forEach((post) => {
-    post.tags?.forEach((tag) => {
-      tagCounts[tag] = (tagCounts[tag] || 0) + 1
-    })
-  })
-
-  const allTags = Object.entries(tagCounts)
-    .sort((a, b) => b[1] - a[1]) // 人気順にソート
-    .map(([tag]) => tag)
+  const {
+    paginatedItems,
+    currentPage,
+    totalPages,
+    goToNext,
+    goToPrev,
+    goToPage,
+  } = usePagination(filtered, 6);
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4">ブログ記事一覧</h1>
+    <main className="p-4 space-y-6">
+      <h1 className="text-2xl font-bold">ブログ一覧</h1>
 
-      <SearchBar value={searchKeyword} onChange={setSearchKeyword} />
+      <SearchInput keyword={keyword} onChange={setKeyword} />
 
-      <CategoryFilter
-        selected={selectedCategory}
-        onSelect={(cat) => {
-          setSelectedCategory(cat)
-          setSelectedTag(null)
+      <div className="flex justify-end mb-2">
+        <select
+          value={sortOption}
+          onChange={(e) => {
+            setSortOption(e.target.value as BlogSortOption);
+            goToPage(1);
+          }}
+          className="border rounded px-3 py-1 text-sm"
+        >
+          <option value="latest">🆕 新着順</option>
+          <option value="viewsDesc">🔥 人気順</option>
+        </select>
+      </div>
+
+      <TagList
+        tags={blogs.flatMap((b) => b.tags)}
+        selected={selectedTag}
+        onSelect={(tag) => {
+          setSelectedTag(tag);
+          goToPage(1);
         }}
       />
 
-      {/* 🔽 並び替えボタン */}
-      <div className="flex gap-2 mt-4">
-        <button
-          onClick={() => setSortType('new')}
-          className={`px-3 py-1 rounded-full ${
-            sortType === 'new'
-              ? 'bg-blue-600 text-white'
-              : 'border border-blue-600 text-blue-600'
-          }`}
-        >
-          新着順
-        </button>
-        <button
-          onClick={() => setSortType('popular')}
-          className={`px-3 py-1 rounded-full ${
-            sortType === 'popular'
-              ? 'bg-blue-600 text-white'
-              : 'border border-blue-600 text-blue-600'
-          }`}
-        >
-          人気順
-        </button>
-        <button
-          onClick={() => setSortType('featured')}
-          className={`px-3 py-1 rounded-full ${
-            sortType === 'featured'
-              ? 'bg-blue-600 text-white'
-              : 'border border-blue-600 text-blue-600'
-          }`}
-        >
-          おすすめ
-        </button>
-      </div>
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <BlogCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div>該当する記事がありません</div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {paginatedItems.map((blog, index) => (
+              <motion.div
+                key={blog.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
+              >
+                <BlogCard
+                  slug={blog.slug}
+                  title={blog.title}
+                  imageUrl={blog.imageUrl}
+                  tags={blog.tags}
+                  views={blog.views}
+                  createdAt={blog.createdAt}
+                />
+              </motion.div>
+            ))}
+          </div>
 
-      {/* 🔽 タグフィルター */}
-      <div className="flex gap-2 mt-4 flex-wrap">
-        <button
-          onClick={() => setSelectedTag(null)}
-          className={`px-3 py-1 rounded-full border ${
-            selectedTag === null ? 'bg-blue-600 text-white' : 'text-blue-600'
-          }`}
-        >
-          すべてのタグ
-        </button>
-        {allTags.map((tag) => (
-          <button
-            key={tag}
-            onClick={() => setSelectedTag(tag)}
-            className={`px-3 py-1 rounded-full border ${
-              selectedTag === tag
-                ? 'bg-blue-600 text-white'
-                : 'text-blue-600 hover:bg-blue-100'
-            }`}
-          >
-            #{tag}
-            <span className="text-xs text-gray-400 ml-1">
-              ({tagCounts[tag]})
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {/* 🔽 記事一覧 */}
-      <div className="space-y-4 mt-4">
-        {filteredPosts.map((post) => (
-          <BlogCard key={post.slug} post={post} />
-        ))}
-      </div>
-
-      {filteredPosts.length === 0 && (
-        <p className="text-gray-500 mt-4">
-          該当する記事が見つかりませんでした。
-        </p>
-      )}
-
-      {filteredPosts.length > 0 && (
-        <Pagination
-          onNext={loadNext}
-          onPrev={loadPrev}
-          hasNext={hasNext}
-          hasPrev={hasPrev}
-        />
+          {/* 🔁 ページネーションUI */}
+          <div className="flex justify-center items-center gap-2 mt-6">
+            <button
+              onClick={goToPrev}
+              disabled={currentPage === 1}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              ← 前へ
+            </button>
+            {[...Array(totalPages)].map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goToPage(i + 1)}
+                className={`px-3 py-1 border rounded ${
+                  currentPage === i + 1
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-gray-700"
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button
+              onClick={goToNext}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              次へ →
+            </button>
+          </div>
+        </>
       )}
     </main>
-  )
+  );
 }

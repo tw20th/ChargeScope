@@ -1,13 +1,13 @@
 // components/common/Footer.tsx
-'use client'
+import { siteConfig } from "@/config/siteConfig";
 
 export const Footer = () => {
   return (
-    <footer className="bg-bgSoft border-t border-pink-200 mt-12">
-      <div className="max-w-6xl mx-auto px-4 py-6 text-center text-sm text-gray-500">
-        <p>© 2025 はちゅナビ</p>
-        <p>爬虫類グッズの比較・発見・ブログ</p>
+    <footer className="bg-gray-100 text-gray-600 text-sm py-6 px-4 mt-10 border-t">
+      <div className="max-w-7xl mx-auto space-y-2 text-center">
+        <p>{siteConfig.footerNote}</p>
+        <p>{siteConfig.copyright}</p>
       </div>
     </footer>
-  )
-}
+  );
+};

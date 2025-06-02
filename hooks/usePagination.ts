@@ -1,26 +1,26 @@
 // hooks/usePagination.ts
-import { useEffect, useState, useCallback } from 'react'
+import { useState, useMemo } from "react";
 
-export const usePagination = (perPage: number) => {
-  const [currentPage, setCurrentPage] = useState(1)
-  const [startIndex, setStartIndex] = useState(0)
-  const [endIndex, setEndIndex] = useState(perPage)
+export function usePagination<T>(items: T[], itemsPerPage: number = 6) {
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const fetchPosts = useCallback(() => {
-    const start = (currentPage - 1) * perPage
-    const end = start + perPage
-    setStartIndex(start)
-    setEndIndex(end)
-  }, [currentPage, perPage])
+  const totalPages = Math.ceil(items.length / itemsPerPage);
 
-  useEffect(() => {
-    fetchPosts()
-  }, [fetchPosts]) // ✅ 依存に追加！
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return items.slice(start, start + itemsPerPage);
+  }, [items, currentPage, itemsPerPage]);
+
+  const goToNext = () => setCurrentPage((p) => Math.min(p + 1, totalPages));
+  const goToPrev = () => setCurrentPage((p) => Math.max(p - 1, 1));
+  const goToPage = (n: number) => setCurrentPage(n);
 
   return {
+    paginatedItems,
     currentPage,
-    setCurrentPage,
-    startIndex,
-    endIndex,
-  }
+    totalPages,
+    goToNext,
+    goToPrev,
+    goToPage,
+  };
 }

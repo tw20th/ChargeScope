@@ -1,29 +1,40 @@
 // components/product/ProductList.tsx
-'use client'
+"use client";
 
-import { ProductCard } from './ProductCard'
-import { usePopularProducts } from '@/hooks/usePopularProducts'
+import { ProductCard } from "./ProductCard";
+import { MonitoredItem } from "@/types/item";
 
-export const ProductList = () => {
-  const { products, loading } = usePopularProducts()
+type ProductListProps = {
+  products: MonitoredItem[];
+  title?: string;
+  showMedals?: boolean;
+};
 
-  if (loading) {
-    return <p className="text-center text-gray-500">読み込み中...</p>
-  }
-
-  if (products.length === 0) {
-    return (
-      <p className="text-center text-gray-500">
-        人気商品が見つかりませんでした。
-      </p>
-    )
-  }
-
+export const ProductList = ({
+  products,
+  title,
+  showMedals,
+}: ProductListProps) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
-      ))}
-    </div>
-  )
-}
+    <section className="space-y-4">
+      {title && <h2 className="text-2xl font-bold">{title}</h2>}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {products.map((item, index) => (
+          <ProductCard
+            key={item.id}
+            id={item.id}
+            productName={item.productName}
+            price={item.price}
+            imageUrl={
+              item.imageUrl ?? `/images/${item.imageKeyword ?? "no-image"}.jpg`
+            }
+            score={item.score}
+            featureHighlights={item.featureHighlights}
+            tag={item.tag}
+            rank={showMedals ? index + 1 : undefined}
+          />
+        ))}
+      </div>
+    </section>
+  );
+};

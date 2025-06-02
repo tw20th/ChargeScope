@@ -4,35 +4,61 @@
 .pnp.js
 .yarn/install-state.gz
 
-# === Testing ===
-/coverage
-
-# === Next.js ===
+# === Build outputs ===
 /.next/
 /out/
-
-# === Production builds ===
 /build
 
-# === Misc ===
-.DS_Store
-*.tsbuildinfo
-*.pem
-*.key
-*.log
-
-# === Debug logs ===
+# === Logs & Debug ===
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
+*.tsbuildinfo
 
-# === Environment variables ===
+# === Misc ===
+.DS_Store
+*.pem
+*.key
+
+# === Environment files ===
 .env
+.env.local
 .env*.local
 
-# === Firebase Secrets ===
+# === Firebase secrets ===
 serviceAccountKey.json
 scripts/serviceAccountKey.json
 
+# === Google Cloud SDK (不要な重いファイル群) ===
+google-cloud-sdk/
+*.tar.gz
+*.zip
+*.dmg
+*.exe
+*.msi
+*.deb
+*.pkg
+*.bak
+*.old
+
+# === AWS credentials（GitHub Push Protection 対象）===
+.aws/
+*.aws
+*.json
+
 # === Vercel ===
 .vercel
+
+# === IDE settings ===
+.vscode/
+.idea/
+
+# === Coverage / Test ===
+/coverage
+
+# === Git filter-repo 作業用ファイル（必要なら）===
+all-files.txt
+large-blobs.txt
+paths-to-remove.txt
+paths-clean.txt

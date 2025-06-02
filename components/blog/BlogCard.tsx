@@ -1,59 +1,88 @@
-import Link from 'next/link'
-import Image from 'next/image' // ✅ これを追加！
-import { Post } from '@/lib/posts'
-import { TagBadge } from './TagBadge'
-import { CategoryLabel } from './CategoryLabel'
+"use client";
 
-export const BlogCard = ({ post }: { post: Post }) => {
+import Link from "next/link";
+import Image from "next/image";
+import { motion } from "framer-motion";
+
+type BlogCardProps = {
+  slug: string;
+  title: string;
+  imageUrl?: string;
+  tags?: string[];
+  views?: number;
+  createdAt?: string;
+  excerpt?: string;
+  isNew?: boolean; // 🆕 NEWバッジ
+};
+
+export const BlogCard = ({
+  slug,
+  title,
+  imageUrl,
+  tags = [],
+  views = 0,
+  createdAt,
+  excerpt,
+  isNew,
+}: BlogCardProps) => {
+  const formattedDate =
+    createdAt &&
+    new Date(createdAt).toLocaleDateString("ja-JP", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+
   return (
-    <Link
-      href={`/blog/${post.slug}`}
-      className="block border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition bg-white"
-    >
-      <div className="flex flex-col h-full">
-        {/* ✅ アイキャッチ画像（上部） */}
-        <Image
-          src={
-            post.image && !post.image.includes('your-image-url.com')
-              ? post.image
-              : 'https://firebasestorage.googleapis.com/v0/b/hatyu-navi.firebasestorage.app/o/gecko-cute.jpg?alt=media&token=1d5f62aa-9982-47a5-91eb-950716bb6259'
-          }
-          alt={post.title}
-          width={800}
-          height={400}
-          className="object-cover w-full h-48 rounded-lg"
-        />
+    <Link href={`/blog/${slug}`}>
+      <motion.div
+        className="bg-white shadow-sm rounded-2xl overflow-hidden hover:shadow-md transition relative"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        {imageUrl && (
+          <div className="relative w-full h-48">
+            <Image
+              src={imageUrl}
+              alt={title}
+              fill
+              className="object-cover rounded-t-2xl"
+            />
+          </div>
+        )}
 
-        <div className="p-4 flex flex-col justify-between flex-1">
-          {post.category && (
-            <div className="mb-1">
-              <CategoryLabel category={post.category} />
-            </div>
+        {/* 🆕 NEWバッジ */}
+        {isNew && (
+          <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full shadow">
+            NEW
+          </span>
+        )}
+
+        <div className="p-4 space-y-2">
+          <h2 className="text-lg font-semibold line-clamp-2">{title}</h2>
+
+          {excerpt && (
+            <p className="text-sm text-gray-600 line-clamp-3">{excerpt}</p>
           )}
 
-          <h2 className="text-lg font-semibold mb-2 line-clamp-2">
-            {post.title}
-          </h2>
+          <div className="flex flex-wrap gap-1">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
 
-          <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-            {post.description}
-          </p>
-
-          <div className="mt-auto">
-            <time className="text-xs text-gray-400 block mb-2">
-              {post.date}
-            </time>
-
-            {post.tags && post.tags.length > 0 && (
-              <div className="flex gap-2 flex-wrap">
-                {post.tags.map((tag) => (
-                  <TagBadge key={tag} tag={tag} />
-                ))}
-              </div>
-            )}
+          <div className="text-xs text-gray-500 flex justify-between mt-2">
+            <span>👁 {views > 0 ? views : "－"}</span>
+            {formattedDate && <span>{formattedDate}</span>}
           </div>
         </div>
-      </div>
+      </motion.div>
     </Link>
-  )
-}
+  );
+};

@@ -1,84 +1,93 @@
-// components/product/ProductCard.tsx
-'use client'
+"use client";
 
-import Image from 'next/image'
-import Link from 'next/link'
+import Image from "next/image";
+import Link from "next/link";
+import { motion } from "framer-motion";
 
-type Props = {
-  product: {
-    id: string
-    title: string
-    image: string
-    slug?: string
-    link: string
-    rakutenLink?: string // ✅ ここ追加！
-    tags?: string[]
-    date?: string
-    category?: string
-    displayCategory?: string
-    price: number
-  }
-}
+type ProductCardProps = {
+  id?: string;
+  productName: string;
+  price: string;
+  imageUrl: string;
+  score: number;
+  featureHighlights?: string[];
+  tag?: string[];
+  rank?: number; // 🥇ランキングメダル用
+};
 
-export const ProductCard = ({ product }: Props) => {
-  return (
-    <div className="border rounded-xl p-4 shadow hover:shadow-md transition">
-      {/* ✅ 商品詳細ページへの内部リンク */}
-      <Link href={`/products/${product.slug ?? product.id}`}>
-        <div className="aspect-video relative mb-3 rounded-lg overflow-hidden cursor-pointer">
-          <Image
-            src={product.image}
-            alt={product.title}
-            fill
-            className="object-cover"
-          />
-        </div>
-        <h3 className="text-lg font-bold mb-1 hover:underline">
-          {product.title}
-        </h3>
-      </Link>
+export const ProductCard = ({
+  id,
+  productName,
+  price,
+  imageUrl,
+  score,
+  featureHighlights,
+  tag,
+  rank,
+}: ProductCardProps) => {
+  const medal = {
+    1: "🥇",
+    2: "🥈",
+    3: "🥉",
+  }[rank ?? 0];
 
-      {/* デバッグ用：追加情報 */}
-      <div className="text-xs text-gray-600 space-y-0.5 mb-2">
-        <p>
-          <span className="font-semibold">ID:</span> {product.id}
-        </p>
-        <p>
-          <span className="font-semibold">カテゴリ:</span> {product.category}
-        </p>
-        <p>
-          <span className="font-semibold">表示カテゴリ:</span>{' '}
-          {product.displayCategory}
-        </p>
-        <p>
-          <span className="font-semibold">価格:</span> ¥
-          {product.price.toLocaleString()}
-        </p>
+  const card = (
+    <motion.div
+      className="bg-white shadow-md rounded-2xl overflow-hidden p-4 flex flex-col gap-2 hover:shadow-lg transition relative"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      {/* 🏅 メダルバッジ */}
+      {medal && <span className="absolute top-2 left-2 text-2xl">{medal}</span>}
+
+      <div className="w-full h-48 relative">
+        <Image
+          src={imageUrl}
+          alt={productName}
+          fill
+          className="object-cover rounded-xl"
+        />
       </div>
 
-      {/* タグ */}
-      {product.tags && (
-        <div className="flex flex-wrap gap-2 mb-2">
-          {product.tags.map((tag) => (
+      <h2 className="text-lg font-semibold line-clamp-2">{productName}</h2>
+      <div className="text-gray-600 text-sm">
+        {price ? `価格：${price} 円` : "※価格はリンク先でご確認ください"}
+      </div>
+
+      {Array.isArray(featureHighlights) && featureHighlights.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-2">
+          {featureHighlights.map((feature) => (
             <span
-              key={tag}
-              className="text-sm bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full"
+              key={feature}
+              className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full"
             >
-              #{tag}
+              {feature}
             </span>
           ))}
         </div>
       )}
 
-      {/* 楽天リンク */}
-      <Link
-        href={product.rakutenLink ?? product.link}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-block mt-2 text-sm text-white bg-blue-600 hover:bg-blue-700 px-4 py-1.5 rounded"
-      >
-        楽天で見る
-      </Link>
-    </div>
-  )
-}
+      <div className="flex items-center justify-between mt-2">
+        <div className="text-sm text-gray-500">スコア</div>
+        <span className="text-xl font-bold text-green-600">{score}</span>
+      </div>
+
+      {Array.isArray(tag) && tag.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-2">
+          {tag.map((t) => (
+            <Link
+              key={t}
+              href={`/category/${encodeURIComponent(t)}`}
+              className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-md hover:underline"
+            >
+              #{t}
+            </Link>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+
+  return id ? <Link href={`/product/${id}`}>{card}</Link> : card;
+};
