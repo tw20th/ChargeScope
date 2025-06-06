@@ -1,3 +1,6 @@
+// types/item.ts
+import { Timestamp } from "firebase/firestore"; // 追加
+
 export type MonitoredItem = {
   id?: string;
   productName: string;
@@ -10,7 +13,8 @@ export type MonitoredItem = {
   imageKeyword?: string;
   imageUrl?: string;
   itemUrl?: string;
-
-  // ✅ 追加
   category?: string;
+
+  // ✅ Firebase Timestamp 型に修正
+  createdAt?: Timestamp;
 };

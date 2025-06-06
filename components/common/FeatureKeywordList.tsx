@@ -8,7 +8,7 @@ type Props = {
 };
 
 export const FeatureKeywordList = ({ limit = 20 }: Props) => {
-  const keywordCounts = useKeywordCounts(); // ✅ 配列として直接返る
+  const keywordCounts = useKeywordCounts();
 
   const sorted = keywordCounts
     .sort((a, b) => b.count - a.count)
@@ -21,7 +21,7 @@ export const FeatureKeywordList = ({ limit = 20 }: Props) => {
           <Link
             key={keyword}
             href={`/features/${encodeURIComponent(keyword)}`}
-            className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm hover:bg-green-200 transition"
+            className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm hover:bg-green-200 transition whitespace-nowrap"
           >
             {keyword}（{count}）
           </Link>

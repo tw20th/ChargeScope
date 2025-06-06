@@ -1,15 +1,16 @@
 // components/sections/Hero.tsx
 "use client";
 
-import { siteConfig } from "@/config/siteConfig";
 import { motion } from "framer-motion";
 
-export const Hero = () => {
-  const heroTitle =
-    siteConfig.heroTitle ||
-    siteConfig.title.replace(" |", "").replace(siteConfig.siteName, "").trim();
-  const heroSubtitle = siteConfig.heroSubtitle || siteConfig.description;
+type HeroProps = {
+  title: string;
+  subtitle: string;
+  ctaLabel: string;
+  ctaHref: string;
+};
 
+export const Hero = ({ title, subtitle, ctaLabel, ctaHref }: HeroProps) => {
   return (
     <motion.section
       className="text-center py-10 bg-gray-100 rounded-xl"
@@ -17,8 +18,8 @@ export const Hero = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.1 }}
     >
-      <h1 className="text-3xl md:text-4xl font-bold mb-2">{heroTitle}</h1>
-      <p className="text-gray-600 mb-4">{heroSubtitle}</p>
+      <h1 className="text-3xl md:text-4xl font-bold mb-2">{title}</h1>
+      <p className="text-gray-600 mb-4">{subtitle}</p>
 
       <form
         action="/search"
@@ -28,7 +29,7 @@ export const Hero = () => {
         <input
           type="text"
           name="q"
-          placeholder="検索キーワード"
+          placeholder="例：10000mAh 軽量 PD対応"
           className="w-64 px-4 py-2 border rounded-lg"
         />
         <button
@@ -40,10 +41,10 @@ export const Hero = () => {
       </form>
 
       <a
-        href="/ranking"
+        href={ctaHref}
         className="inline-block bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700"
       >
-        人気ランキングを見る
+        {ctaLabel}
       </a>
     </motion.section>
   );

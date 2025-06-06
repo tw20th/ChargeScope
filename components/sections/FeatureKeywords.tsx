@@ -1,19 +1,16 @@
-// components/sections/FeatureKeywords.tsx
-"use client";
+// 例：components/sections/FeatureKeywords.tsx
 
-import { motion } from "framer-motion";
-import { FeatureKeywordList } from "@/components/common/FeatureKeywordList";
+type SectionProps = {
+  heading: string;
+  description: string;
+};
 
-export const FeatureKeywords = () => {
+export const FeatureKeywords = ({ heading, description }: SectionProps) => {
   return (
-    <motion.section
-      className="space-y-4"
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.25 }}
-    >
-      <h2 className="text-2xl font-bold mb-4">特徴で絞り込む</h2>
-      <FeatureKeywordList />
-    </motion.section>
+    <section className="space-y-2">
+      <h2 className="text-2xl font-bold">{heading}</h2>
+      <p className="text-gray-600 text-sm">{description}</p>
+      {/* 実際のキーワードリストなどはここ */}
+    </section>
   );
 };

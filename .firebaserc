@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "hatyu-navi"
-  }
+    "default": "chargescope-3144e"
+  },
+  "targets": {},
+  "etags": {}
 }

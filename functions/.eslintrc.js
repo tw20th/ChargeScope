@@ -9,7 +9,6 @@ module.exports = {
     "plugin:import/errors",
     "plugin:import/warnings",
     "plugin:import/typescript",
-    "google",
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended",
     "prettier"
@@ -19,12 +18,7 @@ module.exports = {
     project: ["tsconfig.json"],
     sourceType: "module"
   },
-  ignorePatterns: [
-    "/lib/**/*",
-    "/generated/**/*",
-    ".eslintrc.js",
-    "functions/**" // ← これを追加
-  ],
+  ignorePatterns: ["/lib/**/*", "/generated/**/*", ".eslintrc.js"],
   plugins: ["@typescript-eslint", "import", "prettier"],
   rules: {
     "prettier/prettier": "error",
