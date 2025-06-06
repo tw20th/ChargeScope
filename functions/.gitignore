@@ -16,5 +16,17 @@ encoded.txt
 service-account-key.json
 firebase-debug.log
 
+# System and editor files
 .DS_Store
 *.log
+*.swp
+
+# Additional exclusions for size/security
+google-cloud-sdk/
+*.pyc
+*.pyo
+*.bak
+*.old
+*.zip
+*.tar.gz
+*.service-2.json
