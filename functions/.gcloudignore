@@ -1,0 +1,25 @@
+# 必須（npm / Firebase のゴミファイル類）
+node_modules
+npm-debug.log
+firebase-debug.log
+firebase-debug.*.log
+
+# 開発専用ファイル
+*.local
+*.env
+
+# キャッシュ・IDE・OSごとのゴミ
+.vscode/
+.idea/
+.DS_Store
+
+# デプロイに不要なTypeScriptソースや設定（ビルド済みファイルだけ含める）
+src/
+scripts/
+tsconfig.json
+tsconfig.*.json
+.prettierrc
+.eslintrc.js
+
+# 任意：CI用や個別ログファイルがあれば
+coverage/

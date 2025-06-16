@@ -1,3 +1,4 @@
+// functions/.eslintrc.js
 module.exports = {
   root: true,
   env: {
@@ -26,5 +27,13 @@ module.exports = {
     "import/no-unresolved": 0,
     indent: ["error", 2],
     "require-jsdoc": "off"
-  }
+  },
+  overrides: [
+    {
+      files: ["scripts/**/*.ts"],
+      parserOptions: {
+        project: null // ✅ 型チェックせずにLintだけ通す設定
+      }
+    }
+  ]
 };

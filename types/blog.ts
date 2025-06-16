@@ -1,13 +1,7 @@
-export type Blog = {
-  id?: string;
-  slug: string;
+export type BlogCardProps = {
   title: string;
-  content: string;
-  imageUrl?: string;
+  summary: string;
+  date: string;
+  imageUrl: string;
   tags: string[];
-  category: string;
-  productId: string;
-  createdAt: string;
-  views: number;
-  excerpt?: string; // ✅ 追加（省略可能として定義）
 };

@@ -1,44 +1,32 @@
-"use client";
+// app/page.tsx
 
-import { motion } from "framer-motion";
-import { Hero } from "@/components/sections/Hero";
-import { FeatureKeywords } from "@/components/sections/FeatureKeywords";
-import { PopularBlogs } from "@/components/sections/PopularBlogs";
-import { FeaturedProducts } from "@/components/sections/FeaturedProducts";
+import { ProductList } from "@/components/sections/ProductList";
+import { BlogList } from "@/components/sections/BlogList";
+import { FeatureKeywordList } from "@/components/sections/FeatureKeywordList";
+import { getDocs, collection } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { Product } from "@/types/product";
+import { Blog } from "@/types/blog";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const productsSnapshot = await getDocs(collection(db, "monitoredItems"));
+  const blogsSnapshot = await getDocs(collection(db, "blogs"));
+
+  const products = productsSnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Product[];
+
+  const blogs = blogsSnapshot.docs.map((doc) => ({
+    slug: doc.id,
+    ...doc.data(),
+  })) as Blog[];
+
   return (
-    <motion.main
-      className="p-4 space-y-12 max-w-6xl mx-auto"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.4 }}
-    >
-      {/* ヒーローセクション：コンセプト・検索導線 */}
-      <Hero
-        title="最適なモバイルバッテリーがすぐ見つかる"
-        subtitle="容量・サイズ・充電速度から、あなたにぴったりの1台を比較・発見できます"
-        ctaLabel="人気ランキングを見る"
-        ctaHref="/ranking"
-      />
-
-      {/* 特徴キーワード：featureHighlightsから自動集計 */}
-      <FeatureKeywords
-        heading="特徴から探す"
-        description="軽量・大容量・PD対応など、注目の機能タグから比較しましょう"
-      />
-
-      {/* 人気ブログ：モバイルバッテリー関連のみ抽出 */}
-      <PopularBlogs
-        heading="選び方ガイド・レビュー記事"
-        description="どれを選べばいいか迷ったら、レビュー記事もチェック！"
-      />
-
-      {/* 注目の商品：monitoredItemsの人気順など */}
-      <FeaturedProducts
-        heading="注目のモバイルバッテリー"
-        description="今人気のモバイルバッテリーをピックアップ！"
-      />
-    </motion.main>
+    <div className="space-y-12">
+      <FeatureKeywordList keywords={["軽量", "急速充電", "飛行機OK"]} />
+      <ProductList title="注目のモバイルバッテリー" products={products} />
+      <BlogList title="最新の記事" blogs={blogs} />
+    </div>
   );
 }
